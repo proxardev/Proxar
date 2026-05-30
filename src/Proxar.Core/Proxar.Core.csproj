@@ -1,0 +1,72 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+	<PropertyGroup>
+	  <Description>
+	  </Description>
+	  <Version>0.0.1</Version>
+	</PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DequeNET" Version="1.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.8" />
+    <PackageReference Include="Microsoft.NETCore.Jit" Version="1.0.12" />
+    <PackageReference Include="Proxar.Analyzers.Tools" Version="0.0.1" />
+    <PackageReference Include="Proxar.HashedWheelTimer" Version="1.0.1" />
+    <PackageReference Include="MessagePack" Version="3.1.4" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.7" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.7" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="10.0.7" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.7" />
+    <PackageReference Include="NuGet.CommandLine" Version="7.3.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="System.CommandLine" Version="2.0.7" />
+    <PackageReference Include="System.Runtime.Caching" Version="10.0.3" />
+    <PackageReference Include="TouchSocket" Version="4.2.4" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\tools\CodeGenerator\ServiceFuncGenerator\ServiceSourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+		<ProjectReference Include="..\Proxar.Abstractions\Proxar.Abstractions.csproj" />
+	</ItemGroup>
+	
+	<!--
+	<ItemGroup>
+		<None Include="..\..\tools\Analyzer\Analyzer\\bin\$(Configuration)\netstandard2.0\Service.Analyzers.Generators.dll" PackagePath="analyzers\dotnet\cs" Pack="true" Visible="false" />
+	</ItemGroup>
+	
+	����ʹ��
+	-->
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+			<_Parameter1>TestShared</_Parameter1>
+		</AssemblyAttribute>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+			<_Parameter1>ServiceIntegrationTesting</_Parameter1>
+		</AssemblyAttribute>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+			<_Parameter1>MemoryLeakTests</_Parameter1>
+		</AssemblyAttribute>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+			<_Parameter1>ServiceFrameUnitTest</_Parameter1>
+		</AssemblyAttribute>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+			<_Parameter1>TestServiceCallResultConvertSpeed</_Parameter1>
+		</AssemblyAttribute>
+	</ItemGroup>
+
+  <ItemGroup>
+    <None Update="NLog.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,55 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+	  <LangVersion>preview</LangVersion>
+    <IsPackable>false</IsPackable>
+
+  </PropertyGroup>
+	<PropertyGroup>
+		<ErrorLog>$(TargetDir)analyzer-errors.json</ErrorLog>
+		<ReportAnalyzer>true</ReportAnalyzer>
+		<IsRoslynComponent>true</IsRoslynComponent>
+	</PropertyGroup>
+	<PropertyGroup>
+		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<Description>
+		</Description>
+		<Version>0.0.11</Version>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<PackageLicenseFile>LICENSE</PackageLicenseFile>
+	</PropertyGroup>
+	<ItemGroup>
+		<None Include="../../../LICENSE" Pack="true" PackagePath=""/>
+	</ItemGroup>
+	<!--
+	-->
+	<ItemGroup>
+		<None Include="$(TargetDir)\Proxar.Analyzers.dll" PackagePath="analyzers\dotnet\cs" Pack="true" Visible="false" />
+	</ItemGroup>
+
+  <ItemGroup>
+	  <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Proxar.Analyzers.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Proxar.Analyzers.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Proxar.Analyzers.resx" Generator="ResXFileCodeGenerator" LastGenOutput="Proxar.Analyzers.Designer.cs" />
+  </ItemGroup>
+	
+
+</Project>

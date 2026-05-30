@@ -1,0 +1,7 @@
+<Project>
+	<Target Name="CopyFile" BeforeTargets="AfterCompile">
+		<Copy SourceFiles="$(MSBuildThisFileDirectory)..\analyzers\dotnet\cs\ServiceDispatchMethodGenerator.dll"
+			  DestinationFolder="$(OutputPath)" SkipUnchangedFiles="True" />
+	</Target>
+
+</Project>

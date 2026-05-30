@@ -1,0 +1,9 @@
+
+This file lists all direct and transitive package dependencies and their licenses.
+Because this package only declares dependency version requirements and does not include their binaries, full license texts are not included.
+Please refer to the linked license files for complete terms.
+
++---------+---------+----------------------------+
+| Package | Version | License Information Origin |
++---------+---------+----------------------------+
++---------+---------+----------------------------+

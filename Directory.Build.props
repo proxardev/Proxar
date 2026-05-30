@@ -1,0 +1,15 @@
+<Project>
+	<PropertyGroup>
+		<Authors>Proxar</Authors>
+		<Copyright>© 2026 Proxar</Copyright>
+		<PackageProjectUrl>https://github.com/proxardev</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/proxardev</RepositoryUrl>
+		<PackageOutputPath>$(SolutionDir)/localpackages</PackageOutputPath>
+		<PackageLicenseFile>LICENSE</PackageLicenseFile>
+	</PropertyGroup>
+	<ItemGroup>
+		<None Include="$(MSBuildThisFileDirectory)LICENSE" Pack="true" Visible="false" PackagePath=""/>
+		<None Include="$(MSBuildThisFileDirectory)NOTICE" Pack="true" Visible="false" PackagePath=""/>
+		<None Include="$(MSBuildThisFileDirectory).licenseheader" Pack="false" Visible="false" PackagePath=""/>
+	</ItemGroup>
+</Project>
