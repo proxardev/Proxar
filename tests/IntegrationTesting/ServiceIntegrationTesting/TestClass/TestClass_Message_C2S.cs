@@ -25,7 +25,7 @@ namespace ServiceIntegrationTesting.TestClass;
 
 
 [Collection("TestExternalMessageCollection")]
-public class TestClass_Message_C2S : TestClass_MessageBase<TestService_Message, TestService_MessageProxyExternal>
+public class TestClass_Message_C2S : TestClass_MessageBase<TestService_Message, TestService_Message_ExternalProxy>
 {
 
     protected override async Task<long> InvokeCreateService(Func<Task<long>> func)
@@ -35,7 +35,7 @@ public class TestClass_Message_C2S : TestClass_MessageBase<TestService_Message, 
         {
             task = func();
         };
-        TestInitializer.ClientHostCluster.ClusterExecute(action);
+        TestInitializer.ClientServiceGroup.ServiceGroupExecute(action);
         return await task;
     }
 
@@ -47,23 +47,23 @@ public class TestClass_Message_C2S : TestClass_MessageBase<TestService_Message, 
         clientChannel.SetCommunicationChannel(serverChannel);
         serverChannel.SetCommunicationChannel(clientChannel);
 
-        var x = ActorThreadScope.HostCluster;
+        var x = ActorThreadScope.ServiceGroup;
 
 
         clientChannel.MessageReceived += (channel, readOnlyMemory) =>
         {
-            TestInitializer.ClientHostCluster.ClusterExecute(() =>
+            TestInitializer.ClientServiceGroup.ServiceGroupExecute(() =>
                 Channel_MessageReceived(channel, readOnlyMemory)
                 );
         };
         serverChannel.MessageReceived += (channel, readOnlyMemory) =>
         {
-            TestInitializer.ServerHostCluster.ClusterExecute(() =>
+            TestInitializer.ServerServiceGroup.ServiceGroupExecute(() =>
                 Channel_MessageReceived(channel, readOnlyMemory)
                 );
         };
 
-        TestInitializer.ClientHostCluster.ClusterExecute(
+        TestInitializer.ClientServiceGroup.ServiceGroupExecute(
             () =>
             {
                 Game.Instance.GateMessageInvoker
@@ -75,7 +75,7 @@ public class TestClass_Message_C2S : TestClass_MessageBase<TestService_Message, 
             }
         );
 
-        TestInitializer.ServerHostCluster.ClusterExecute(
+        TestInitializer.ServerServiceGroup.ServiceGroupExecute(
             () =>
             {
                 Game.Instance.GateMessageInvoker

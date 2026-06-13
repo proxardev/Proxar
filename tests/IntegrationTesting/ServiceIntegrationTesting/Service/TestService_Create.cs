@@ -55,7 +55,7 @@ public partial class TestService_Create : ServiceBase
             .ToList();
 
         TestLogHelper.TestDebugLog($"CreateAndDestory wait {count} {callTaskList.Count}");
-        var callResList = await Proxar.Tasks.ZFTaskHelper.WhenAll(callTaskList);
+        var callResList = await ZFTaskHelper.WhenAll(callTaskList);
         TestLogHelper.TestDebugLog($"CreateAndDestory wait succ {count}");
         callResList.Count.Should().Be(count);
         callResList.ToHashSet().Count.Should().Be(1);

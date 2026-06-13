@@ -32,7 +32,7 @@ internal sealed class ActorObjectPoolManager :
 
 
     public void AddPool<T>(ActorObjectPoolSingleton<T> pool)
-        where T : notnull, AbstractPoolable<T>, new()
+        where T : notnull, IPoolable<T>, new()
     {
         var type = typeof(T);
         cache[type] = pool;

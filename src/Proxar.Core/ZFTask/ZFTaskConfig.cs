@@ -15,19 +15,10 @@
  * limitations under the License.
  */
 
+namespace Proxar.Tasks;
 
-namespace Proxar.CachePool.Interfaces;
-
-
-public interface IPoolable<T>
+public static class ZFTaskConfig
 {
-    bool IsRented { get; set; }
+    public static Action<Exception>? UnhandledExceptionHandler { get; set; } = null;
 
-    int PoolExpireAtTime { get; set; }
-
-    bool IsDiscarded { get; set; }
-
-    public void ReturnToPool();
-
-    public void OnRented();
 }

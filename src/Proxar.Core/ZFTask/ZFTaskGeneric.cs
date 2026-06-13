@@ -16,6 +16,7 @@
  */
 
 
+using Proxar.Tasks.Interfaces;
 using System.Runtime.CompilerServices;
 
 namespace Proxar.Tasks;
@@ -23,13 +24,13 @@ namespace Proxar.Tasks;
 
 
 [AsyncMethodBuilder(typeof(AsyncZFTaskGenericMethodBuilder<>))]
-public sealed class ZFTask<TRet> : ZFTask, ICriticalNotifyCompletion
+public sealed class ZFTask<TRet> : ZFTaskBase<ZFTask<TRet>>, ICriticalNotifyCompletion, ITask
 {
-    private TRet? Value;
+    private TRet? value;
     internal static readonly ZFTask<TRet> DefaultZFTaskResult = CreateCompletedTask();
     //internal static readonly ZFTask<TRet> FromResult = CreateFromResult<TRet>;
-    public static new Func<ZFTask<TRet>> CreateZFTask = InternalZFTaskHelper.CreateZFTaskOwnedByService<TRet>;
-    public static new Action<ZFTask<TRet>>? OnResultConsumed = InternalZFTaskHelper.ReturnZFTaskToPool<TRet>;
+    public static Func<ZFTask<TRet>> CreateZFTask { get; set; } = InternalZFTaskHelper.CreateZFTaskOwnedByService<TRet>;
+    public static Action<ZFTask<TRet>>? OnResultConsumed { get; set; } = InternalZFTaskHelper.ReturnZFTaskToPool<TRet>;
 
     public ZFTask()
     {
@@ -41,14 +42,14 @@ public sealed class ZFTask<TRet> : ZFTask, ICriticalNotifyCompletion
     {
         var task = new ZFTask<TRet>();
         task.state = ZFTaskState.Succeeded;
-        task.Value = default(TRet);
+        task.value = default(TRet);
         return task;
     }
 
     public static ZFTask<TResult> FromResult<TResult>(TResult result)
     {
         var task = ZFTask<TResult>.CreateZFTask();
-        task.Value = result;
+        task.value = result;
         task.state = ZFTaskState.Succeeded;
         return task;
     }
@@ -62,29 +63,33 @@ public sealed class ZFTask<TRet> : ZFTask, ICriticalNotifyCompletion
     //    this.exceptionInfo = null;
     //}
 
-    public new ZFTask<TRet> GetAwaiter()
+    public ZFTask<TRet> GetAwaiter()
     {
         return this;
     }
 
-    public new TRet GetResult()
+    public TRet GetResult()
     {
         this.CheckResult();
+        var value = this.value!;
         OnResultConsumed?.Invoke(this);
-        return this.Value!;
+        return value;
     }
 
     public void SetResult(TRet result)
     {
-        if (this.state != ZFTaskState.Pending)
-        {
-            throw new InvalidOperationException("Task Already Completed");
-        }
+        this.value = result;
+        this.SetResultCore();
+    }
 
-        this.state = ZFTaskState.Succeeded;
-        this.Value = result;
-        var continuation = this.action;
-        this.action = null;
-        continuation?.Invoke();
+    protected override void OnReset()
+    {
+        this.value = default(TRet);
+    }
+
+    public override void OnRented()
+    {
+        this.Id = ZFTaskInt64IdGeneratorActorSingleton.Current
+            .NewId();
     }
 }

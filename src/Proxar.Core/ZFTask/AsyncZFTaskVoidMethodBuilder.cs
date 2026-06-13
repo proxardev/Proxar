@@ -32,7 +32,7 @@ internal struct AsyncZFTaskVoidMethodBuilder
 
     public void SetException(Exception e)
     {
-        ZFTask.UnhandledExceptionHandler!.Invoke(e);
+        ZFTaskConfig.UnhandledExceptionHandler!.Invoke(e);
     }
 
     public void SetResult()

@@ -52,7 +52,7 @@ public class GateWay : IGateMessageInvoker
 
     public void ReceiveChannelData(IChannel channel, byte[] data)
     {
-        var x = ActorThreadScope.HostCluster;
+        var x = ActorThreadScope.ServiceGroup;
         gateWayServiceProxy.Value.Raw.ReceiveChannelData(channel, data);
     }
 

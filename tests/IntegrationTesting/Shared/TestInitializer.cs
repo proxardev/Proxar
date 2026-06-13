@@ -50,9 +50,9 @@ public static class TestInitializer
 
     public static Func<ZFTask> OnIniting { get; set; } = null!;
 
-    public static IHostCluster ServerHostCluster { get; private set; } = null!;
+    public static IServiceGroup ServerServiceGroup { get; private set; } = null!;
 
-    public static IHostCluster ClientHostCluster { get; private set; } = null!;
+    public static IServiceGroup ClientServiceGroup { get; private set; } = null!;
 
 
     static TestInitializer()
@@ -63,10 +63,10 @@ public static class TestInitializer
         var host = AppHostBuilder.Instance;
         host
             .SetCommandLineArgs(args)
-            .ConfigureDefaultHostCluster((hostCluster) =>
+            .ConfigureDefaultServiceGroup((serviceGroup) =>
                 {
-                    ServerHostCluster = hostCluster;
-                    hostCluster.AddHostClusterStartAction(async (serviceId) =>
+                    ServerServiceGroup = serviceGroup;
+                    serviceGroup.AddServiceGroupStartAction(async (serviceId) =>
                     {
                         await NetWorkV2Helper.Configure(
                             OnClientChannelConnected
@@ -83,11 +83,10 @@ public static class TestInitializer
                 {
                 }
             )
-            .CreateHostCluster(hostCluster =>
+            .CreateServiceGroup(serviceGroup =>
                 {
-                    ClientHostCluster = hostCluster;
-                    hostCluster.Flag = "Client";
-                    //hostCluster.Invoker = new HostClusterInvoker(SecondWorkerId);
+                    ClientServiceGroup = serviceGroup;
+                    serviceGroup.Flag = "Client";
                 }
             )
             .ConfigureLogger(loggerConfigbuilder =>

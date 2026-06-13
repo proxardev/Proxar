@@ -45,7 +45,7 @@ public class TimerBase : BaseObject, ITimerObject
     {
         this.delayRemovePerCallRemoveCount = Math.Max(this.delayRemovePerCallRemoveCount,
             delayRemovePerCallRemoveCount);
-        this.delayRemoveOnCancel = false;
+        this.delayRemoveOnCancel = delayRemoveOnCancel;
     }
 
     private static Int64IdGenerator GetTimerIdGenerator()

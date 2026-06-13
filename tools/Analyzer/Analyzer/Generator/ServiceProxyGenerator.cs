@@ -30,12 +30,12 @@ public static partial class ServiceProxyClassGenerate
     {
         var opetions = new ServiceProxyGenerationOptions
         {
-            Suffix = "",
+            Prefix = "",
             BaseInterfaceName = $"IServiceProxy",
             GeneralSpacialProxy = true
         };
         var (succ, sourceCode) = GenerateServiceProxyClass(serviceInfo, opetions);
-        var fileName = $"{serviceInfo.GetClassName().Replace('<', '_').Replace('>', '_')}_Proxy.g.cs";
+        var fileName = $"{serviceInfo.GetNamespace()}.{serviceInfo.GetClassName().Replace('<', '_').Replace('>', '_')}_Proxy.g.cs";
         sourceProductionContext.AddSource(fileName, SourceText.From(sourceCode, Encoding.UTF8));
 
         GenerateExternalProxyClass(moduleExternalProxyPreId, sourceProductionContext, serviceInfo);
@@ -46,7 +46,7 @@ public static partial class ServiceProxyClassGenerate
         var opetions = new ServiceProxyGenerationOptions
         {
             Type = ServiceProxyGenerationType.ExternalProxy,
-            Suffix = "External",
+            Prefix = "External",
             BaseInterfaceName = $"IExternalProxy",
             GeneralSpacialProxy = false,
             FilterAttribute = "Proxar.ServiceCore.ServiceMethodExportAttribute",
@@ -58,7 +58,7 @@ public static partial class ServiceProxyClassGenerate
         {
             return;
         }
-        var fileName = $"{serviceInfo.GetClassName().Replace('<', '_').Replace('>', '_')}_Proxy{opetions.Suffix}.g.cs";
+        var fileName = $"{serviceInfo.GetNamespace()}.{serviceInfo.GetClassName().Replace('<', '_').Replace('>', '_')}_{opetions.Prefix}Proxy.g.cs";
         sourceProductionContext.AddSource(fileName, SourceText.From(sourceCode, Encoding.UTF8));
     }
 
@@ -101,11 +101,11 @@ using Proxar.Tasks;
             return "";
         }
         var method = $@"
-    public {serviceInfo.GetProxyClassName()}{serviceProxyGenerationOptions.Suffix}(long serviceId):base(serviceId)
+    public {serviceInfo.GetProxyClassName(serviceProxyGenerationOptions.Prefix)}(long serviceId):base(serviceId)
     {{
     }}
 
-    public {serviceInfo.GetProxyClassName()}{serviceProxyGenerationOptions.Suffix}(long serviceId, IMessageInvoker messageInvoker):base(serviceId, messageInvoker)
+    public {serviceInfo.GetProxyClassName(serviceProxyGenerationOptions.Prefix)}(long serviceId, IMessageInvoker messageInvoker):base(serviceId, messageInvoker)
     {{
     }}
 ";
@@ -119,8 +119,8 @@ using Proxar.Tasks;
             return "";
         }
 
-        var baseProxyClassName = serviceInfo.GetDirectParentProxyClassName();
-        return $": {baseProxyClassName}{serviceProxyGenerationOptions.Suffix}, {serviceProxyGenerationOptions.GetInterfaceName(serviceInfo)}";
+        var baseProxyClassName = serviceInfo.GetDirectParentProxyClassName(serviceProxyGenerationOptions.Prefix);
+        return $": {baseProxyClassName}, {serviceProxyGenerationOptions.GetInterfaceName(serviceInfo)}";
     }
 
     public static string GenerateProxyCreateMethod(ServiceInfo serviceInfo, ServiceProxyGenerationOptions serviceProxyGenerationOptions)
@@ -129,13 +129,13 @@ using Proxar.Tasks;
         {
             return "";
         }
-        var proxyClassName = serviceInfo.GetProxyClassName();
+        var proxyClassName = serviceInfo.GetProxyClassName(serviceProxyGenerationOptions.Prefix);
         var method = $@"
 
 
     public new static {serviceProxyGenerationOptions.BaseInterfaceName} Create(long serviceId)
     {{
-        return new {proxyClassName}{serviceProxyGenerationOptions.Suffix}(serviceId);
+        return new {proxyClassName}(serviceId);
     }}
 ";
         return method;
@@ -181,7 +181,7 @@ using Proxar.Tasks;
             .ToList();
         var proxyMethod = string.Join("", methods.Select(x => MakeServiceDispathMethodProxy(className, x, serviceProxyGenerationOptions: proxyOption)));
 
-        var proxyClassName = serviceInfo.GetProxyClassName();
+        var proxyClassName = serviceInfo.GetProxyClassName(proxyOption.Prefix);
 
         var inheritClassName = GenerateInheritClassName(serviceInfo, proxyOption);
 
@@ -193,7 +193,7 @@ using Proxar.Tasks;
 
         var proxyIntfDeclaration = $@"
 
-{accessibility} partial class {proxyClassName}{proxyOption.Suffix}  {inheritClassName}
+{accessibility} partial class {proxyClassName}  {inheritClassName}
 {{
 #pragma warning disable CS0108
     public const  long ProxyId = {proxyOption.GetProxyId(serviceInfo)};
@@ -222,8 +222,8 @@ using Proxar.Tasks;
         var accessibility = serviceInfo.GetAccessibilityType();
         var proxyMethod = string.Join("", serviceInfo.GetProtoMethodSymbols().Select(x => MakeServiceDispathMethodProxy(className, x)));
 
-        var proxyClassName = serviceInfo.GetProxyClassName();
-        var baseProxyClassName = serviceInfo.GetDirectParentProxyClassName();
+        var proxyClassName = serviceInfo.GetProxyClassName(serviceProxyGenerationOptions.Prefix);
+        var baseProxyClassName = serviceInfo.GetDirectParentProxyClassName(serviceProxyGenerationOptions.Prefix);
 
         var inheritClassName = GenerateInheritClassName(serviceInfo, serviceProxyGenerationOptions);
 

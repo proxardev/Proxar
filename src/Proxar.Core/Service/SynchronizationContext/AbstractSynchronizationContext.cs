@@ -20,7 +20,5 @@ namespace Proxar.ServiceSynchronizationContext;
 
 public abstract class AbstractSynchronizationContext : SynchronizationContext
 {
-    public abstract void ExecuteSyncAction();
-
     public abstract void Post(Action action);
 }

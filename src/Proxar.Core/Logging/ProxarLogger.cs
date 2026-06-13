@@ -45,6 +45,7 @@ public static class ProxarLogger
         ErrorAction = action;
     }
 
+    [Conditional("Debug")]
     public static void Console(string message)
     {
         System.Console.WriteLine($"{TimeHelper.MilliTimeStr()} {message}");

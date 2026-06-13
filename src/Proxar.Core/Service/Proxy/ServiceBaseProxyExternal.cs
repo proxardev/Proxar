@@ -19,7 +19,7 @@
 using Proxar.ServiceCore.Interfaces;
 namespace Proxar.ServiceCore;
 
-public partial class ServiceBaseProxyExternal : IExternalProxy
+public partial class ServiceBase_ExternalProxy : IExternalProxy
 {
     public long ServiceId { get; }
 
@@ -27,12 +27,12 @@ public partial class ServiceBaseProxyExternal : IExternalProxy
 
     private IMessageInvoker messageInvoker { get; } = null!;
 
-    public ServiceBaseProxyExternal(long serviceId)
+    public ServiceBase_ExternalProxy(long serviceId)
     {
         this.ServiceId = serviceId;
     }
 
-    public ServiceBaseProxyExternal(long serviceId, IMessageInvoker messageInvoker) : this(serviceId)
+    public ServiceBase_ExternalProxy(long serviceId, IMessageInvoker messageInvoker) : this(serviceId)
     {
         this.messageInvoker = messageInvoker;
     }
@@ -49,11 +49,11 @@ public partial class ServiceBaseProxyExternal : IExternalProxy
 
     public static IExternalProxy Create(long serviceId)
     {
-        return new ServiceBaseProxyExternal(serviceId);
+        return new ServiceBase_ExternalProxy(serviceId);
     }
 
     public static IExternalProxy Create(long serviceId, IMessageInvoker messageInvoker)
     {
-        return new ServiceBaseProxyExternal(serviceId, messageInvoker);
+        return new ServiceBase_ExternalProxy(serviceId, messageInvoker);
     }
 }

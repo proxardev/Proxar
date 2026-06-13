@@ -24,11 +24,6 @@ namespace Proxar.AppHost;
 public class AppOptions
 {
     /// <summary>
-    /// 日志级别
-    /// </summary>
-    public string LogLevel { get; init; } = "Information";
-
-    /// <summary>
     /// 工作机器Id
     /// </summary>
     public int WorkerId { get; init; }

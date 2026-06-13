@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
+namespace Proxar.Tasks.Interfaces;
 
-namespace Proxar.CachePool.Interfaces;
-
-internal interface IPoolableInfo
+internal interface ITask
 {
-    long poolExpireTime { get; set; }
-    bool isRented { get; set; }
+    public void Cancel()
+    {
+    }
 }

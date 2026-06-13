@@ -21,7 +21,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 namespace Analyzer
@@ -58,17 +57,6 @@ namespace Analyzer
         public IMethodSymbol GetServiceMethod()
         {
             var service = context.Compilation.GetTypeByMetadataName($"{GetServiceNamespace()}.{GetServiceProxyName()}");
-
-            var x = service.GetMembers(GetServiceProtoMethodStrName());
-            var y = x.OfType<IMethodSymbol>();
-            var z = service.GetMembers(GetServiceProtoMethodStrName())
-                .OfType<IMethodSymbol>()
-                .FirstOrDefault();
-            if (z == null)
-            {
-                var xxx = GetServiceProtoMethodStrName();
-                Debugger.Launch();
-            }
             return service.GetMembers(GetServiceProtoMethodStrName())
                 .OfType<IMethodSymbol>()
                 .FirstOrDefault();
@@ -87,10 +75,10 @@ namespace Analyzer
 
         public List<ITypeSymbol> GetCallMethodParametersTypeList()
         {
-            var a = GetGenericTypeSymbolList();
-            if (a != null)
+            var genericTypeSymbols = GetGenericTypeSymbolList();
+            if (genericTypeSymbols != null)
             {
-                return a;
+                return genericTypeSymbols;
             }
 
             var semanticModel = context.SemanticModel;
@@ -122,7 +110,7 @@ namespace Analyzer
         public string GetServiceProxyName()
         {
             var serviceName = GetServiceName();
-            return ServiceInfo.GetProxyClassName(serviceName);
+            return ServiceInfo.GetProxyClassName(serviceName, "");
         }
 
         public string GetServiceProtoMethodStrName()

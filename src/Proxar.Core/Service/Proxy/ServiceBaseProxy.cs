@@ -24,7 +24,7 @@ public partial class ServiceBaseProxy : IServiceProxy
 {
     public long ServiceId { get; }
 
-    public IMessageInvoker MessageInvoker => throw new NotImplementedException();
+    public IMessageInvoker MessageInvoker => messageInvoker;
 
     private IMessageInvoker messageInvoker { get; } = null!;
 

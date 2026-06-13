@@ -25,12 +25,12 @@ namespace Proxar.AppHost;
 
 public partial class AppHostBuilder : Singleton<AppHostBuilder>
 {
-    private List<IHostCluster> hostClusters = new List<IHostCluster>();
-    public IHostCluster DefaultHostCluster { get; private set; } = null!;
+    private List<IServiceGroup> serviceGroups = new List<IServiceGroup>();
+    public IServiceGroup DefaultServiceGroup { get; private set; } = null!;
     private List<Action> buildActions = new List<Action>();
-    private IIdGenerator<int> hostClusterIdGenerator = new Int32IdGenerator();
+    private IIdGenerator<int> serviceGroupIdGenerator = new Int32IdGenerator();
 
-    private List<Action<IHostCluster>> defaultHostClusterConfigureActions = new List<Action<IHostCluster>>();
+    private List<Action<IServiceGroup>> defaultServiceGroupConfigureActions = new List<Action<IServiceGroup>>();
 
     private Action mainThreadAction = StartHelper.MainThreadLoop;
 
@@ -50,12 +50,12 @@ public partial class AppHostBuilder : Singleton<AppHostBuilder>
         Game.Instance.ConfigureAppOptions(commandLineArgs);
 
 
-        buildActions.Add(CreateDefaultHostCluster);
-        this.ConfigureDefaultHostCluster(hostClusters =>
+        buildActions.Add(CreateDefaultServiceGroup);
+        this.ConfigureDefaultServiceGroup(serviceGroup =>
             {
-                if (hostClusters.Flag == null || hostClusters.Flag == "")
+                if (serviceGroup.Flag == null || serviceGroup.Flag == "")
                 {
-                    hostClusters.Flag = "Server";
+                    serviceGroup.Flag = "Server";
                 }
             }
         );
@@ -65,7 +65,7 @@ public partial class AppHostBuilder : Singleton<AppHostBuilder>
             action.Invoke();
         }
 
-        ActorThreadScope.ThreadHostClusterSet = DefaultHostCluster;
+        ActorThreadScope.ThreadServiceGroup = DefaultServiceGroup;
     }
 
     /// <summary>
@@ -73,45 +73,47 @@ public partial class AppHostBuilder : Singleton<AppHostBuilder>
     /// </summary>
     /// <param name="action"></param>
     /// <returns></returns>
-    public AppHostBuilder CreateHostCluster(Action<IHostCluster> action)
+    public AppHostBuilder CreateServiceGroup(Action<IServiceGroup> action)
     {
-        var action2 = () => CreateHostCluster2(action);
+        var action2 = () => CreateServiceGroup2(action);
         buildActions.Add(action2);
         return this;
     }
 
-    private void CreateHostCluster2(Action<IHostCluster> action)
+    private void CreateServiceGroup2(Action<IServiceGroup> action)
     {
-        IHostCluster hostCluster = new DefaultHostCluster(hostClusterIdGenerator.NewId());
-        hostClusters.Add(hostCluster);
-        action.Invoke(hostCluster);
-        hostCluster.ClusterExecute(() =>
+        IServiceGroup serviceGroup = new DefaultServiceGroup(serviceGroupIdGenerator.NewId());
+        serviceGroups.Add(serviceGroup);
+        action.Invoke(serviceGroup);
+        serviceGroup.ServiceGroupExecute(() =>
         {
-            StartHelper.CreateMainService(hostCluster.GetHostClusterStartActions());
+            var serviceGroup2 = ActorThreadScope.ServiceGroup;
+            ServiceManager.Instance.RegisterServiceGroup(serviceGroup2);
+            StartHelper.CreateMainService(serviceGroup2.GetServiceGroupStartActions());
         });
     }
 
     /// <summary>
     /// 默认启动器
     /// </summary>
-    private void CreateDefaultHostCluster()
+    private void CreateDefaultServiceGroup()
     {
-        IHostCluster hostCluster = new DefaultHostCluster(hostClusterIdGenerator.NewId());
-        DefaultHostCluster = hostCluster;
-        hostClusters.Add(hostCluster);
-        foreach (var action in defaultHostClusterConfigureActions)
+        IServiceGroup serviceGroup = new DefaultServiceGroup(serviceGroupIdGenerator.NewId());
+        DefaultServiceGroup = serviceGroup;
+        serviceGroups.Add(serviceGroup);
+        foreach (var action in defaultServiceGroupConfigureActions)
         {
-            action.Invoke(hostCluster);
+            action.Invoke(serviceGroup);
         }
-        hostCluster.ClusterExecute(() =>
+        serviceGroup.ServiceGroupExecute(() =>
         {
-            StartHelper.DefaultStartUp(hostCluster.GetHostClusterStartActions(), mainThreadAction);
+            StartHelper.DefaultStartUp(serviceGroup.GetServiceGroupStartActions(), mainThreadAction);
         });
     }
 
-    public AppHostBuilder ConfigureDefaultHostCluster(Action<IHostCluster> action)
+    public AppHostBuilder ConfigureDefaultServiceGroup(Action<IServiceGroup> action)
     {
-        defaultHostClusterConfigureActions.Add(action);
+        defaultServiceGroupConfigureActions.Add(action);
         return this;
     }
 

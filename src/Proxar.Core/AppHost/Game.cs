@@ -27,7 +27,7 @@ public class Game : Singleton<Game>
 {
     public IIdGenerator<long> IdGenerator2 { get; set; } = new Int64IdSafeGenerator();
 
-    public IGateMessageInvoker GateMessageInvoker => ActorThreadScope.HostCluster.GateMessageInvoker;
+    public IGateMessageInvoker GateMessageInvoker => ActorThreadScope.ServiceGroup.GateMessageInvoker;
 
     public IIdGenerator<long> SnowflakeIdGenerator { get; set; } = null!;
 

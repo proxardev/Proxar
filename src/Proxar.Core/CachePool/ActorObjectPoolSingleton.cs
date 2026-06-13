@@ -35,7 +35,7 @@ public static class ActorObjectPoolConfig
 public class ActorObjectPoolSingleton<T> :
     ActorSingleton<ActorObjectPoolSingleton<T>>,
     ISingletonInitializer, IObjectCachePool
-    where T : notnull, AbstractPoolable<T>, new()
+    where T : notnull, IPoolable<T>, new()
 
 {
     public const int DefaultPoolSize = 10_000;
@@ -63,7 +63,12 @@ public class ActorObjectPoolSingleton<T> :
         {
             return;
         }
+        if (obj.IsDiscarded)
+        {
+            return;
+        }
         obj.PoolExpireAtTime = ActorThreadScope.ExpireAt;
+        obj.IsRented = false;
         if (obj is IResettablePooled resettablePooled)
         {
             resettablePooled.Reset();

@@ -44,7 +44,7 @@ internal partial class GateWayService : ServiceBase
         {
             return;
         }
-        var host = ActorThreadScope.HostCluster;
+        var host = ActorThreadScope.ServiceGroup;
         var msg = $"{host.Flag},{GetServiceId()}|{message}";
         ProxarLogger.TestDebugLog(msg);
     }
@@ -144,7 +144,7 @@ internal partial class GateWayService : ServiceBase
             var gateServiceMessage = new GateServiceMessage(payloadReadOnlyMemory);
             var header = new MessageHeader(rpcId);
             gateServiceMessage.SetHeadData(0, fromServiceId, serviceMessage.GetSeq(), serviceMessage.GetProto(), header);
-            Service.MessageInvoker.Send(0, fromServiceId, serviceMessage);
+            Service.MessageInvoker.Send(0, fromServiceId, gateServiceMessage);
         }
         else if (proxyId != 0)
         {

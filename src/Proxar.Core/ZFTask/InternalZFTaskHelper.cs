@@ -16,6 +16,8 @@
  */
 
 
+using Proxar.CachePool;
+using Proxar.CachePool.Interfaces;
 using Proxar.ServiceSynchronizationContext;
 namespace Proxar.Tasks;
 
@@ -24,15 +26,11 @@ internal static class InternalZFTaskHelper
 
     internal static ZFTask CreateZFTaskOwnedByService()
     {
-        var task = new ZFTask();
-        task.Id = ZFTaskInt64IdGeneratorActorSingleton.Current
-            .NewId();
+        var task = ActorObjectPoolSingleton<ZFTask>.Current.Rent();
+        SynchronizationContextHelper
+            .GetSynchronization<ActorSynchronizationContext>()!
+            .RegisterPenddingZFTask(task);
         return task;
-        //var task = ActorObjectPoolSingleton<ZFTask>.Current.Rent();
-        //SynchronizationContextHelper
-        //    .GetSynchronization<ActorSynchronizationContext>()!
-        //    .RegisterPenddingZFTask(task);
-        //return task;
     }
 
     internal static void ReturnZFTaskToPool(ZFTask task)
@@ -41,14 +39,15 @@ internal static class InternalZFTaskHelper
             .GetSynchronization<ActorSynchronizationContext>()?
             .UnRegisterPenddingZFTask(task);
 
-        //task.ReturnToPool();
+        if (task is IPoolable<ZFTask> poolable)
+        {
+            poolable.ReturnToPool();
+        }
     }
 
     internal static ZFTask<T> CreateZFTaskOwnedByService<T>()
     {
-        var task = new ZFTask<T>();
-        task.Id = ZFTaskInt64IdGeneratorActorSingleton.Current
-            .NewId();
+        var task = ActorObjectPoolSingleton<ZFTask<T>>.Current.Rent();
         SynchronizationContextHelper
             .GetSynchronization<ActorSynchronizationContext>()!
             .RegisterPenddingZFTask(task);
@@ -61,7 +60,9 @@ internal static class InternalZFTaskHelper
             .GetSynchronization<ActorSynchronizationContext>()!
             .UnRegisterPenddingZFTask(task);
 
-        // 归还到缓存池
-        //task.ReturnToPool();
+        if (task is IPoolable<ZFTask<T>> poolable)
+        {
+            poolable.ReturnToPool();
+        }
     }
 }

@@ -104,7 +104,7 @@ public class TouchSocketChannel : IChannel, IDisposable
         tcpClient.Closed = (client, e) =>
         {
             var channel = tcpClient.GetChannel<TouchSocketChannel>();
-            if (!channel.connected)
+            if (channel.connected)
             {
                 channel.RaiseDisconnectedEvent(e.Message);
                 channel.connected = false;
@@ -118,7 +118,7 @@ public class TouchSocketChannel : IChannel, IDisposable
         tcpSessionClient.Closed = (session, e) =>
         {
             var channel = tcpSessionClient.GetChannel<TouchSocketChannel>();
-            if (!channel.connected)
+            if (channel.connected)
             {
                 channel.RaiseDisconnectedEvent(e.Message);
                 channel.connected = false;
@@ -168,8 +168,9 @@ public class TouchSocketChannel : IChannel, IDisposable
 
     public void Close(string reason = "Normal")
     {
-        if (connected) return;
+        if (!connected) return;
         connected = false;
+        CloseAsync().Coroutine();
     }
 
     public async ZFTask CloseAsync(string reason = "Normal")

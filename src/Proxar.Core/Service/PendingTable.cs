@@ -62,11 +62,11 @@ internal sealed class PendingTable<T> : IPendingTable
         return false;
     }
 
-    public ZFTask<T> PopPendingResultTask(long session)
+    public ZFTask<T>? PopPendingResultTask(long session)
     {
         var ts = _map!.Get(session);
         _map.Remove(session);
-        return ts!;
+        return ts;
     }
 
     public void SetResult(long msgSeq, IServiceMessage msg)

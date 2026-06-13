@@ -16,38 +16,33 @@
  */
 
 
+using Proxar.CachePool.Interfaces;
+
 namespace Proxar.CachePool;
 
-public abstract class AbstractPoolable<T>
+public abstract class AbstractPoolable<T> : IPoolable<T>
     where T : notnull, AbstractPoolable<T>, new()
 {
-    public bool IsDiscarded { get; private set; }
-    public bool isRented { get; private set; }
-
+    public bool IsDiscarded { get; set; }
+    public bool IsRented { get; set; }
     public int PoolExpireAtTime { get; set; }
 
-
-    public void OnRented()
+    public virtual void OnRented()
     {
-        //isRented = true;
-        //this.Reset();
     }
 
     public void ReturnToPool()
     {
-        if (IsDiscarded)
-        {
-            return;
-        }
-        //isRented = false;
         ActorObjectPoolSingleton<T>.Current.Return((this as T)!);
     }
+
     public bool Discard()
     {
-        if (!isRented)
+        if (!IsRented)
         {
             return false;
         }
+        IsRented = false;
         IsDiscarded = true;
         return true;
     }

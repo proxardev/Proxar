@@ -1,0 +1,17 @@
+<Project>
+	<PropertyGroup>
+		<!-- 若项目未显式设置，则默认启用文件输出 -->
+		<EmitCompilerGeneratedFiles Condition="'$(EmitCompilerGeneratedFiles)' == ''">true</EmitCompilerGeneratedFiles>
+		<!-- 指定外部代理输出目录（可被覆盖） -->
+		<ProxarExternalProxyOutputPath Condition="'$(ProxarExternalProxyOutputPath)' == ''">$(MSBuildProjectDirectory)\GeneratedExternalProxyCode</ProxarExternalProxyOutputPath>
+	</PropertyGroup>
+	<ItemGroup>
+		<Compile Remove="GeneratedExternalProxyCode\**" />
+		<EmbeddedResource Remove="GeneratedExternalProxyCode\**" />
+		<None Remove="GeneratedExternalProxyCode\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<CompilerVisibleProperty Include="ModuleExternalProxyPreId" />
+	</ItemGroup>
+</Project>

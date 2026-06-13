@@ -24,11 +24,11 @@ namespace Proxar.ServiceCore.Message;
 
 public abstract class PayloadServiceMessage : AbstractServiceMessage, IBufferWriter<byte>, INetMessage
 {
-    protected IMemoryOwner<byte>? LocalMemoryOwner = null;
+    protected IMemoryOwner<byte>? localMemoryOwner = null;
 
-    private int WrittenCount = 0;
+    private int writtenCount = 0;
 
-    protected bool IsSerializeArgs { get; set; }
+    protected bool isSerializeArgs { get; set; }
 
 
     public PayloadServiceMessage()
@@ -38,25 +38,25 @@ public abstract class PayloadServiceMessage : AbstractServiceMessage, IBufferWri
 
     public PayloadServiceMessage(IMemoryOwner<byte> LocalMemoryOwner, int size)
     {
-        this.LocalMemoryOwner = LocalMemoryOwner;
-        this.WrittenCount = size;
+        this.localMemoryOwner = LocalMemoryOwner;
+        this.writtenCount = size;
     }
 
 
     public void SetIsSerializeArgs()
     {
-        IsSerializeArgs = true;
+        isSerializeArgs = true;
     }
 
 
     public bool ValidIsSerializeArgs()
     {
-        return IsSerializeArgs;
+        return isSerializeArgs;
     }
 
     public int CalNeedMemorySize(int sizeHint)
     {
-        var nowSize = this.WrittenCount + sizeHint;
+        var nowSize = this.writtenCount + sizeHint;
         var need = Math.Max(nowSize, 1024);
         if (need == nowSize)
         {
@@ -69,8 +69,8 @@ public abstract class PayloadServiceMessage : AbstractServiceMessage, IBufferWri
     {
         var needSize = this.CalNeedMemorySize(sizeHint);
         var newMemoryOwner = MemoryPool<byte>.Shared.Rent(needSize);
-        var oldMemoryOwner = this.LocalMemoryOwner;
-        this.LocalMemoryOwner = newMemoryOwner;
+        var oldMemoryOwner = this.localMemoryOwner;
+        this.localMemoryOwner = newMemoryOwner;
         if (oldMemoryOwner != null)
         {
             oldMemoryOwner.Memory.CopyTo(newMemoryOwner.Memory);
@@ -81,19 +81,21 @@ public abstract class PayloadServiceMessage : AbstractServiceMessage, IBufferWri
 
     public override void Dispose()
     {
-        if (this.LocalMemoryOwner != null)
+        if (this.localMemoryOwner != null)
         {
-            this.LocalMemoryOwner.Dispose();
+            var oldMemoryOwner = this.localMemoryOwner;
+            this.localMemoryOwner = null;
+            oldMemoryOwner.Dispose();
         }
     }
 
     public override MessagePackReader GetMessagePackReader()
     {
-        if (this.LocalMemoryOwner == null)
+        if (this.localMemoryOwner == null)
         {
             throw new InvalidOperationException("not memory buffer data");
         }
-        var reader = new MessagePackReader(this.LocalMemoryOwner.Memory);
+        var reader = new MessagePackReader(this.localMemoryOwner.Memory);
         return reader;
     }
 
@@ -107,15 +109,15 @@ public abstract class PayloadServiceMessage : AbstractServiceMessage, IBufferWri
         var writer2 = new MessagePackWriter(writer);
         writer2.Write(this.toServiceId);
         Service.WriterHeander(ref writer2, ServiceId, msgSeq, Proto, headerData);
-        if (IsSerializeArgs)
+        if (isSerializeArgs)
         {
-            if (WrittenCount == 0)
+            if (writtenCount == 0)
             {
                 return;
             }
-            var memory = writer.GetMemory(WrittenCount);
-            LocalMemoryOwner!.Memory.Slice(0, WrittenCount).CopyTo(memory);
-            writer.Advance(WrittenCount);
+            var memory = writer.GetMemory(writtenCount);
+            localMemoryOwner!.Memory.Slice(0, writtenCount).CopyTo(memory);
+            writer.Advance(writtenCount);
         }
         else
         {
@@ -125,26 +127,26 @@ public abstract class PayloadServiceMessage : AbstractServiceMessage, IBufferWri
 
     public override ReadOnlyMemory<byte> GetPayloadReadOnlyMemory()
     {
-        if (!IsSerializeArgs)
+        if (!isSerializeArgs)
         {
             SerializeArgs(this);
         }
 
-        if (WrittenCount == 0)
+        if (writtenCount == 0)
         {
             return ReadOnlyMemory<byte>.Empty;
         }
-        return LocalMemoryOwner!.Memory.Slice(0, WrittenCount);
+        return localMemoryOwner!.Memory.Slice(0, writtenCount);
 
     }
 
     public ReadOnlyMemory<byte> NetMessageSerialize()
     {
-        if (!IsSerializeArgs)
+        if (!isSerializeArgs)
         {
             this.Serialize();
         }
-        return LocalMemoryOwner!.Memory.Slice(0, WrittenCount);
+        return localMemoryOwner!.Memory.Slice(0, writtenCount);
     }
 
     public Span<byte> GetSpan(int sizeHint = 0)
@@ -154,21 +156,21 @@ public abstract class PayloadServiceMessage : AbstractServiceMessage, IBufferWri
 
     public void Advance(int count)
     {
-        this.WrittenCount += count;
+        this.writtenCount += count;
     }
 
     public Memory<byte> GetMemory(int sizeHint = 0)
     {
-        if (this.LocalMemoryOwner == null)
+        if (this.localMemoryOwner == null)
         {
             this.ReAllocateMemory(sizeHint);
         }
-        var left = this.LocalMemoryOwner!.Memory.Length - this.WrittenCount;
+        var left = this.localMemoryOwner!.Memory.Length - this.writtenCount;
         if (left <= 0 || left < sizeHint)
         {
             this.ReAllocateMemory(sizeHint);
         }
-        return this.LocalMemoryOwner.Memory.Slice(this.WrittenCount);
+        return this.localMemoryOwner.Memory.Slice(this.writtenCount);
     }
 
     public override T ReadHead<T>()

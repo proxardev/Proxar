@@ -101,16 +101,16 @@ internal class ServiceManager : Singleton<ServiceManager>
         return CreateService<T>(idGenerator);
     }
 
-    public void RegisterHostCluster(IHostCluster hostCluster)
+    public void RegisterServiceGroup(IServiceGroup serviceGroup)
     {
-        serviceMapping.TryAdd(hostCluster.ClusterId, new());
+        serviceMapping.TryAdd(serviceGroup.GroupId, new());
     }
 
     public long CreateUniqueService<T>()
         where T : ServiceBase, new()
     {
-        var hostCluster = ActorThreadScope.HostCluster;
-        var mapping = serviceMapping[hostCluster.ClusterId];
+        var serviceGroup = ActorThreadScope.ServiceGroup;
+        var mapping = serviceMapping[serviceGroup.GroupId];
         var name = typeof(T).FullName!;
         var serviceId = mapping.GetOrAdd(name, CreateUniqueService<T>);
         return serviceId;
@@ -125,8 +125,8 @@ internal class ServiceManager : Singleton<ServiceManager>
     public long GetUniqueService<T>()
         where T : ServiceBase
     {
-        var hostCluster = ActorThreadScope.HostCluster;
-        var mapping = serviceMapping[hostCluster.ClusterId];
+        var serviceGroup = ActorThreadScope.ServiceGroup;
+        var mapping = serviceMapping[serviceGroup.GroupId];
         var name = typeof(T).FullName!;
         var succ = mapping.TryGetValue(name, out var serviceId);
         return serviceId;
@@ -134,16 +134,16 @@ internal class ServiceManager : Singleton<ServiceManager>
 
     public bool SetService(string name, long serviceId)
     {
-        var hostCluster = ActorThreadScope.HostCluster;
-        var mapping = serviceMapping[hostCluster.ClusterId];
+        var serviceGroup = ActorThreadScope.ServiceGroup;
+        var mapping = serviceMapping[serviceGroup.GroupId];
         var res = mapping.TryAdd(name, serviceId);
         return res;
     }
 
     public long GetServiceIdByName(string name)
     {
-        var hostCluster = ActorThreadScope.HostCluster;
-        var mapping = serviceMapping[hostCluster.ClusterId];
+        var serviceGroup = ActorThreadScope.ServiceGroup;
+        var mapping = serviceMapping[serviceGroup.GroupId];
         mapping.TryGetValue(name, out var serviceId);
         return serviceId;
     }

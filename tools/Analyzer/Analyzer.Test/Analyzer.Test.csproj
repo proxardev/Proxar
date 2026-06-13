@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -21,8 +21,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Proxar.Core\Proxar.Core.csproj" />
     <ProjectReference Include="..\Analyzer.CodeFixes\Analyzer.CodeFixes.csproj" />
-    <ProjectReference Include="..\Analyzer\Service.Analyzers.Generators.csproj" />
+    <ProjectReference Include="..\Analyzer\Proxar.Analyzers.csproj" />
   </ItemGroup>
 
 </Project>

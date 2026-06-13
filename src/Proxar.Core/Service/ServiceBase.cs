@@ -40,13 +40,13 @@ public abstract partial class ServiceBase
 
     private ServiceStatue serviceStatue = ServiceStatue.None;
 
-    public IHostCluster HostCluster { get; init; }
+    public IServiceGroup ServiceGroup { get; init; }
 
 
     public ServiceBase()
     {
         actorSynchronizationContext = new ActorSynchronizationContext(this);
-        HostCluster = ActorThreadScope.HostCluster;
+        ServiceGroup = ActorThreadScope.ServiceGroup;
     }
 
     protected internal long NewMessageSeq()

@@ -21,5 +21,5 @@ using Proxar.ServiceCore.Interfaces;
 
 public static class ExternalProxyConfig
 {
-    public static IMessageInvoker MessageInvoker => ActorThreadScope.HostCluster.ExternalProxyInvoker;
+    public static IMessageInvoker MessageInvoker => ActorThreadScope.ServiceGroup.ExternalProxyInvoker;
 }

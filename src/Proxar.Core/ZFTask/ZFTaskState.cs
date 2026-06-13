@@ -25,4 +25,5 @@ public enum ZFTaskState
     Succeeded = 1,
     Faulted = 2,
     Canceled = 3,
+    Reset = 4,
 }

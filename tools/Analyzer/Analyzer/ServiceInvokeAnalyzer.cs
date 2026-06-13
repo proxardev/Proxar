@@ -22,7 +22,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 
 namespace Analyzer
@@ -66,9 +65,7 @@ namespace Analyzer
             }
             catch (Exception e)
             {
-                Debugger.Launch();
-                context.AnalysisErrorOutput(Rules.ErrorRule_0999, e.StackTrace);
-                context.AnalysisErrorOutput(Rules.ErrorRule_0999, e.Message + "12312 " + e.StackTrace);
+                context.AnalysisErrorOutput(Rules.ErrorRule_0999, $"err stack trace {e.StackTrace}");
                 throw;
             }
         }
@@ -237,28 +234,10 @@ namespace Analyzer
             var callMethodParamTypeList = serviceInvokeInfo.GetCallMethodParametersTypeList();
             var method = serviceInvokeInfo.GetServiceMethod();
             var argsExprList = serviceInvokeInfo.ArgsExprList;
-            if (protoMethodParamsTypeList == null)
-            {
-                Debugger.Launch();
-            }
             context.DebugOutput($"debug info5 {serviceInvokeInfo.GetServiceMethod() == null} {callMethodParamTypeList?.Count} {callMethodParamTypeList == null}" +
                 $"{serviceInvokeInfo.GetServiceName()} {serviceInvokeInfo.GetServiceProtoMethodStrName()}");
-
-
-            var infos = callMethodParamTypeList.Select(t => t.ToDisplayString()).ToList();
-            var info = string.Join(", ", infos);
-            var infos2 = protoMethodParamsTypeList.Select(t => t.ToDisplayString()).ToList();
-            var info2 = string.Join(", ", infos2);
             context.DebugOutput($"debug info5 {serviceInvokeInfo.GetServiceMethod() == null} " +
                 $"{serviceInvokeInfo.GetServiceName()} {serviceInvokeInfo.GetServiceProtoMethodStrName()}");
-            var x = serviceInvokeInfo.GetGenericTypeSymbolList();
-            var info3 = "xxx";
-            if (x != null)
-            {
-
-                var infos3 = x.Select(t => t.ToDisplayString()).ToList();
-                info3 = string.Join(", ", infos3);
-            }
             context.DebugOutput($"debug info {serviceInvokeInfo.GetServiceNamespace()} " +
                 $"{serviceInvokeInfo.GetServiceName()} {method.ToDisplayString()} {protoMethodParamsTypeList.Count} {argsExprList.Count}");
 

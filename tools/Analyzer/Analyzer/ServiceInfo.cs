@@ -31,6 +31,7 @@ namespace Analyzer
         public static (int, int) ReservedProto = (900, 999);
         public static int StartProto = 1;
         public const string BaseServiceClassFullName = "Proxar.ServiceCore.ServiceBase";
+        public const string BaseServiceClassName = "ServiceBase";
         public INamedTypeSymbol ServiceClassSymbol { get; set; }
         public SemanticModel SemanticModel { get; }
         public ClassDeclarationSyntax ClassDeclarationSyntax { get; }
@@ -44,14 +45,9 @@ namespace Analyzer
         }
 
 
-        public ServiceInfo(SyntaxNodeAnalysisContext context, MethodDeclarationSyntax method)
+        public ServiceInfo(SyntaxNodeAnalysisContext context, ClassDeclarationSyntax classDeclarationSyntax)
         {
             SemanticModel = context.SemanticModel;
-            var methodDeclarationSyntax = (MethodDeclarationSyntax)context.Node;
-            var classDeclarationSyntax = methodDeclarationSyntax
-                .Ancestors()
-                .OfType<ClassDeclarationSyntax>()
-                .FirstOrDefault();
             this.TryInit(classDeclarationSyntax);
             if (!IsService)
             {
@@ -134,18 +130,27 @@ namespace Analyzer
             return $"{ServiceClassSymbol.Name}_Proto_Enum";
         }
 
-        public string GetDirectParentProxyClassName()
+        public string GetDirectParentProxyClassName(string mark)
         {
-            return GetProxyClassName(ServiceClassSymbol.BaseType.Name);
+            var baseName = ServiceClassSymbol.BaseType.Name;
+            if (baseName == BaseServiceClassName)
+            {
+                return GetProxyClassName(ServiceClassSymbol.BaseType.Name, mark);
+            }
+            return baseName;
         }
 
-        public string GetProxyClassName()
+        public string GetProxyClassName(string mark)
         {
-            return GetProxyClassName(ServiceClassSymbol.Name);
+            return GetProxyClassName(ServiceClassSymbol.Name, mark);
         }
 
-        public static string GetProxyClassName(string className)
+        public static string GetProxyClassName(string className, string mark)
         {
+            if (mark.Count() != 0)
+            {
+                return $"{className}_{mark}Proxy";
+            }
             return $"{className}Proxy";
         }
 

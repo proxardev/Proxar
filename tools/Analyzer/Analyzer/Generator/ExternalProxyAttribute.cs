@@ -25,6 +25,9 @@ public static class ExternalProxyAttribute
 
     public const string AttributeName = "Proxar.ServiceCore.ServiceExportAttribute";
     public const string ProxyField = "proxyId";
+    public const string ModuleExternalProxyPreIdField = "ModuleExternalProxyPreId";
+    public const int MinProxyId = 1;
+    public const int MaxProxyId = 9999;
 
 
 }

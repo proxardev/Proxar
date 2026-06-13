@@ -97,7 +97,6 @@ internal class ServiceWorkThread
             if (succ)
             {
                 needContinueDispatch = this.Service.ThreadConsumeMessage();
-                ActorThreadScope.UnbindActor();
             }
         }
         catch (Exception e)
@@ -107,6 +106,7 @@ internal class ServiceWorkThread
         }
         finally
         {
+            ActorThreadScope.UnbindActor();
             var serviceId = this.Service.GetServiceId();
             if (!needContinueDispatch)
             {

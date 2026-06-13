@@ -33,7 +33,8 @@ public class ServiceProxyGenerationOptions
     public ServiceProxyGenerationType Type { get; set; } = 0;
 
     public string Namespace { get; set; } = string.Empty;
-    public string Suffix { get; set; } = string.Empty;
+
+    public string Prefix { get; set; } = string.Empty;
 
     public string ClassName { get; set; } = string.Empty;
 
@@ -60,7 +61,7 @@ public static class ServiceProxyGenerationOptionsExtension
 {
     public static string GetInterfaceName(this ServiceProxyGenerationOptions self, ServiceInfo serviceInfo)
     {
-        var interfaceName = $"{serviceInfo.GetInterfaceName()}{self.Suffix}";
+        var interfaceName = $"{serviceInfo.GetInterfaceName()}{self.Prefix}";
         return interfaceName;
     }
 
@@ -68,8 +69,8 @@ public static class ServiceProxyGenerationOptionsExtension
     {
         if (self.Type == ServiceProxyGenerationType.ExternalProxy)
         {
-            var proxyId = serviceInfo.ServiceClassSymbol
-                .GetSymbolAttrValue<long>(ExternalProxyAttribute.AttributeName, ExternalProxyAttribute.ProxyField);
+            serviceInfo.ServiceClassSymbol
+                .TryGetSymbolAttrValue<long>(ExternalProxyAttribute.AttributeName, ExternalProxyAttribute.ProxyField, out var proxyId);
             return self.ModuleExternalProxyPreId * 10000 + proxyId;
 
             //return proxyId;

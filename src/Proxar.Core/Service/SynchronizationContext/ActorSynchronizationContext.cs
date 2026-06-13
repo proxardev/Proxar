@@ -20,14 +20,14 @@ using Proxar.ActorSingletonCore.Interfaces;
 using Proxar.IdGenerator;
 using Proxar.ServiceCore;
 using Proxar.ServiceCore.Message;
-using Proxar.Tasks;
+using Proxar.Tasks.Interfaces;
 namespace Proxar.ServiceSynchronizationContext;
 
 public sealed partial class ActorSynchronizationContext : AbstractSynchronizationContext
 {
     private ServiceBase attachedService;
     private Int64IdGenerator timerInt64IdGenerator = new Int64IdGenerator() { InitValue = 1 };
-    private HashSet<ZFTask> pendingZFTask = new HashSet<ZFTask>();
+    private HashSet<ITask> pendingZFTask = new HashSet<ITask>();
 
     public List<IActorSingleton?> ActorSingletonList
         = new List<IActorSingleton?>(100);
@@ -45,11 +45,6 @@ public sealed partial class ActorSynchronizationContext : AbstractSynchronizatio
 
     internal void InitActorSynchronizationContext()
     {
-    }
-
-    public override void ExecuteSyncAction()
-    {
-        throw new NotImplementedException();
     }
 
     public override void Post(SendOrPostCallback d, object? state)
@@ -84,9 +79,7 @@ public sealed partial class ActorSynchronizationContext : AbstractSynchronizatio
         foreach (var task in pendingZFTask)
         {
             task.Cancel();
-            //task.straceInfo = TraceHelper.TraceInfo();
         }
-        //ProxarLogger.Console($"close {this.service.GetServiceId()}");
         pendingZFTask.Clear();
         this.attachedService?.ClearAllMessage();
         this.attachedService = null!;
@@ -97,12 +90,12 @@ public sealed partial class ActorSynchronizationContext : AbstractSynchronizatio
         ActorSingletonList.Clear();
     }
 
-    public void RegisterPenddingZFTask(ZFTask task)
+    internal void RegisterPenddingZFTask(ITask task)
     {
         pendingZFTask.Add(task);
     }
 
-    public void UnRegisterPenddingZFTask(ZFTask task)
+    internal void UnRegisterPenddingZFTask(ITask task)
     {
         pendingZFTask.Remove(task);
     }

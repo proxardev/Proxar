@@ -35,7 +35,7 @@ public class Server2ExternalProxyMessageInvoker : IMessageInvoker
 
         var fromServiceId = serviceMessage.GetFromServiceId();
 
-        var x = ActorThreadScope.HostCluster;
+        var x = ActorThreadScope.ServiceGroup;
         Game.Instance.GateMessageInvoker.ForwardServiceMessage2Client(fromServiceId, targetId, proxyId, rpcId, proto, payload.ToArray());
         serviceMessage.Dispose();
     }

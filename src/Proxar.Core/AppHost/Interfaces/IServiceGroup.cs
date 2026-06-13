@@ -22,9 +22,9 @@ using Proxar.Tasks;
 
 namespace Proxar.AppHost.Interfaces;
 
-public interface IHostCluster
+public interface IServiceGroup
 {
-    int ClusterId { get; }
+    int GroupId { get; }
 
     IMessageInvoker Invoker { get; set; }
 
@@ -37,26 +37,26 @@ public interface IHostCluster
     string Flag { get; set; }
 
 
-    void AddHostClusterStartAction(Func<long, ZFTask> func);
+    void AddServiceGroupStartAction(Func<long, ZFTask> func);
 
-    List<Func<long, ZFTask>> GetHostClusterStartActions();
+    List<Func<long, ZFTask>> GetServiceGroupStartActions();
 
-    void ClusterExecute(Action action)
+    void ServiceGroupExecute(Action action)
     {
-        var cluster = ActorThreadScope.HostCluster;
+        var group = ActorThreadScope.ServiceGroup;
         try
         {
-            ActorThreadScope.ThreadHostClusterSet = this;
+            ActorThreadScope.ThreadServiceGroup = this;
             action.Invoke();
         }
         catch (Exception)
         {
-            ActorThreadScope.ThreadHostClusterSet = cluster;
+            ActorThreadScope.ThreadServiceGroup = group;
             throw;
         }
         finally
         {
-            ActorThreadScope.ThreadHostClusterSet = cluster;
+            ActorThreadScope.ThreadServiceGroup = group;
         }
     }
 }

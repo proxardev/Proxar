@@ -1,7 +1,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Threading.Tasks;
 using VerifyCS = Analyzer.Test.CSharpCodeFixVerifier<
-    Analyzer.AnalyzerAnalyzer,
+    Analyzer.ServiceMethodDeclarationAnalyzer,
     Analyzer.AnalyzerCodeFixProvider>;
 
 namespace Analyzer.Test

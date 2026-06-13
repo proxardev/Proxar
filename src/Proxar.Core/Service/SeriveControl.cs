@@ -96,7 +96,7 @@ public static partial class Service
         return ServiceManager.Instance.SetService(name, serviceId);
     }
 
-    public static long GetServiceIdByName(string name)
+    internal static long GetServiceIdByName(string name)
     {
         return ServiceManager.Instance.GetServiceIdByName(name);
     }

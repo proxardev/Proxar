@@ -25,9 +25,9 @@ namespace Proxar.ServiceCore;
 
 public static partial class Service
 {
-    public static IMessageInvoker MessageInvoker => ActorThreadScope.HostCluster.Invoker;
+    public static IMessageInvoker MessageInvoker => ActorThreadScope.ServiceGroup.Invoker;
 
-    internal static IInternalMessageInvoker InternalMessageInvoker => ActorThreadScope.HostCluster.InternalInvoker;
+    internal static IInternalMessageInvoker InternalMessageInvoker => ActorThreadScope.ServiceGroup.InternalInvoker;
 
 
     internal static bool IsNeedSerialize<T>()

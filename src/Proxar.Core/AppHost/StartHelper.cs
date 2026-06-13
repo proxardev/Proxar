@@ -31,7 +31,6 @@ internal static class StartHelper
 
     private static async ZFTask CheckConfigDefault(long serviceId)
     {
-        Service.CreateUniqueService<GateWayService>();
         Game.Instance.SnowflakeIdGenerator = CreateSnowflakeIdGenerator();
         await ZFTask.CompletedTask;
     }
@@ -50,18 +49,22 @@ internal static class StartHelper
 
     private static void EnsureServerConfig()
     {
-        ArgumentNullException.ThrowIfNull(ZFTask.UnhandledExceptionHandler);
+        ArgumentNullException.ThrowIfNull(ZFTaskConfig.UnhandledExceptionHandler);
     }
 
     private static void InitConfig()
     {
         string currentDirectory = Environment.CurrentDirectory;
-        Console.WriteLine($"current work dir: {currentDirectory}");
+        ProxarLogger.Info($"current work dir: {currentDirectory}");
+        ProxarLogger.Console($"current work dir: {currentDirectory}");
 
-        ZFTask.UnhandledExceptionHandler = (exception) =>
+        if (ZFTaskConfig.UnhandledExceptionHandler == null)
         {
-            ProxarLogger.Error(exception);
-        };
+            ZFTaskConfig.UnhandledExceptionHandler = (exception) =>
+            {
+                ProxarLogger.Error(exception);
+            };
+        }
 
         ZFTask.NextFrameHander = Service.NextFrame;
 
@@ -70,9 +73,9 @@ internal static class StartHelper
 
     internal static long CreateMainService(List<Func<long, ZFTask>> funcs)
     {
-        var hostCluster = ActorThreadScope.HostCluster;
+        var serviceGroup = ActorThreadScope.ServiceGroup;
+        ServiceManager.Instance.RegisterServiceGroup(serviceGroup);
         var boot = new ServiceBootstrapper(funcs);
-        ServiceManager.Instance.RegisterHostCluster(hostCluster);
         var serviceId = Service.CreateService<MainService>(boot);
         CreateHelperService();
         return serviceId;
@@ -81,11 +84,12 @@ internal static class StartHelper
     internal static void DefaultStartUp(List<Func<long, ZFTask>> funcs, Action? mainThreadLoop = null)
     {
         funcs.Add(CheckConfigDefault);
-        var hostCluster = ActorThreadScope.HostCluster;
-        ServiceManager.Instance.RegisterHostCluster(hostCluster);
+        var serviceGroup = ActorThreadScope.ServiceGroup;
+        ServiceManager.Instance.RegisterServiceGroup(serviceGroup);
 
         string currentDirectory = Environment.CurrentDirectory;
-        Console.WriteLine($"cur start dir: {currentDirectory}");
+        ProxarLogger.Info($"cur start dir: {currentDirectory}");
+        ProxarLogger.Console($"cur start dir: {currentDirectory}");
 
         InitConfig();
         EnsureServerConfig();

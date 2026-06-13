@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+	<ModuleExternalProxyPreId>1</ModuleExternalProxyPreId>
+  
+</PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="GeneratedExternalProxyCode\**" />
+    <EmbeddedResource Remove="GeneratedExternalProxyCode\**" />
+    <None Remove="GeneratedExternalProxyCode\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Proxar.Core" Version="0.0.1" />
+  </ItemGroup>
+</Project>

@@ -39,21 +39,21 @@ internal static class ActorThreadScope
     public static ServiceBase Service = null!;
 
     [ThreadStatic]
-    private static IHostCluster hostCluster = null!;
+    private static IServiceGroup serviceGroup = null!;
 
 
-    public static IHostCluster HostCluster => hostCluster ?? GetHostCluster();
+    public static IServiceGroup ServiceGroup => serviceGroup ?? GetDefaultServiceGroup();
 
-    private static IHostCluster GetHostCluster()
+    private static IServiceGroup GetDefaultServiceGroup()
     {
-        return AppHostBuilder.Instance.DefaultHostCluster;
+        return AppHostBuilder.Instance.DefaultServiceGroup;
     }
 
-    internal static IHostCluster ThreadHostClusterSet
+    internal static IServiceGroup ThreadServiceGroup
     {
         set
         {
-            hostCluster = value;
+            serviceGroup = value;
         }
     }
 
@@ -76,7 +76,7 @@ internal static class ActorThreadScope
         ExpireAt = TimeHelper.GetSecond() + CacheLiveTime;
 
         OperateServiceId = Service.GetServiceId();
-        hostCluster = Service.HostCluster;
+        serviceGroup = Service.ServiceGroup;
 
     }
 

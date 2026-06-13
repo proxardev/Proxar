@@ -142,7 +142,7 @@ public abstract partial class ServiceBase
         Service.Send(this.curMsgSourceServiceId, ProtoBase.RpcCallbackError, exception.Message, header: header);
     }
 
-#pragma warning disable ZF0004 // 服务方法保留协议约束
+#pragma warning disable P0004 // 服务方法保留协议约束
 
     [ServiceMethod(ProtoBase.ContextAction)]
     private void ExecuteContextAction()
@@ -215,7 +215,7 @@ public abstract partial class ServiceBase
         return 1;
     }
 
-#pragma warning restore ZF0004 // 服务方法保留协议约束
+#pragma warning restore P0004 // 服务方法保留协议约束
 
     protected virtual void OnRpcCallBack(long msgSeq, IServiceMessage serviceMessage)
     {
@@ -228,19 +228,6 @@ public abstract partial class ServiceBase
         var penddingTable = this.PopPenddingTableByMsgSeq(msgSeq);
         penddingTable?.SetException(msgSeq, serviceMessage);
     }
-
-    //protected abstract bool RpcCallBack2(long msgSeq, IServiceMessage msg);
-
-    //protected abstract bool SetRpcCallBackException2(long msgSeq, Exception exception);
-    public void CreateUser(string name)
-    {
-        Console.WriteLine($"Create user: {name}");
-    }
-
-    //protected virtual void Dispatch(int proto, IServiceMessage msg)
-    //{
-
-    //}
 
     private void InitService()
     {
@@ -327,10 +314,6 @@ public abstract partial class ServiceBase
     protected Action<T>? PackReplyAction<T>()
     {
         var serviceId = this.curMsgSourceServiceId;
-        if (serviceId == 0)
-        {
-            throw new Exception("asdasdasda");
-        }
         var msgSeq = this.curMsgSeq;
         this.curMsgSeq = 0;
         this.curMsgSourceServiceId = 0;

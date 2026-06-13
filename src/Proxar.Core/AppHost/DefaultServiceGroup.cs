@@ -24,9 +24,9 @@ using Proxar.Tasks;
 
 namespace Proxar.AppHost;
 
-public class DefaultHostCluster : IHostCluster
+public class DefaultServiceGroup : IServiceGroup
 {
-    public int ClusterId { get; }
+    public int GroupId { get; }
 
     public IMessageInvoker Invoker { get; set; }
 
@@ -38,23 +38,23 @@ public class DefaultHostCluster : IHostCluster
     private readonly List<Func<long, ZFTask>> startActions = new List<Func<long, ZFTask>>();
 
 
-    internal DefaultHostCluster(int clusterId)
+    internal DefaultServiceGroup(int clusterId)
     {
-        ClusterId = clusterId;
+        GroupId = clusterId;
         Invoker = new ServiceRouter();
         InternalInvoker = new ServiceInternalRouter();
 
-        GateMessageInvoker = new Proxar.ServiceCore.GateWay.GateWay();
+        GateMessageInvoker = new GateWay();
 
         ExternalProxyInvoker = new Server2ExternalProxyMessageInvoker();
     }
 
-    public void AddHostClusterStartAction(Func<long, ZFTask> func)
+    public void AddServiceGroupStartAction(Func<long, ZFTask> func)
     {
         startActions.Add(func);
     }
 
-    public List<Func<long, ZFTask>> GetHostClusterStartActions()
+    public List<Func<long, ZFTask>> GetServiceGroupStartActions()
     {
         return startActions;
     }

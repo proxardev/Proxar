@@ -70,7 +70,7 @@ namespace ZFSourceGenerator
 
     public override {deserializeResultTypes} DeserializeArgs{deserializeGenericTypesStatement}()
     {{
-        if (!IsSerializeArgs)
+        if (!isSerializeArgs)
         {{
             return ArgsReturn{deserializeGenericTypesStatement}();
         }}

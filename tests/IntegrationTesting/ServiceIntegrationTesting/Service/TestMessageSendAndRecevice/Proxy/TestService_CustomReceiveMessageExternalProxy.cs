@@ -20,7 +20,7 @@ using Proxar.ServiceCore.Interfaces;
 
 namespace ServiceIntegrationTesting.TestMessageSendAndRecevice;
 
-public class TestService_CustomReceiveMessageExternalProxy : TestService_ReceiveMessageProxyExternal, ICustomTestService_ReceiveMessageProxy
+public class TestService_CustomReceiveMessageExternalProxy : TestService_ReceiveMessage_ExternalProxy, ICustomTestService_ReceiveMessageProxy
 {
     public TestService_CustomReceiveMessageExternalProxy(long serviceId) : base(serviceId)
     {

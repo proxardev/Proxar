@@ -65,7 +65,7 @@ public class ServiceDispatchMessageMethodGenerator : IIncrementalGenerator
             {
 
                 var sourceCode = GenerateServiceDispatchPartialClass(uniqueService, "");
-                var fileName = $"{uniqueService.GetClassName().Replace('<', '_').Replace('>', '_')}_DispatchTable.g.cs";
+                var fileName = $"{uniqueService.GetNamespace()}.{uniqueService.GetClassName().Replace('<', '_').Replace('>', '_')}_DispatchTable.g.cs";
                 productionContext.AddSource(fileName, SourceText.From(sourceCode, Encoding.UTF8));
 
                 ServiceProxyClassGenerate.GenerateProxyClass(ModuleExternalProxyPreId, productionContext, uniqueService);

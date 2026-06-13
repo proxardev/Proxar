@@ -16,6 +16,8 @@
  */
 
 
+using Proxar.Logging;
+
 namespace Proxar.Utilities;
 
 
@@ -30,7 +32,7 @@ internal static class ProfileHelper
 
         var costTime = endTime - startTime;
 
-        Console.WriteLine($"{info} action cost time test :{costTime}");
+        ProxarLogger.Console($"{info} action cost time test :{costTime}");
         return costTime;
     }
 
@@ -42,7 +44,7 @@ internal static class ProfileHelper
 
         var costTime = endTime - startTime;
 
-        Console.WriteLine($"{info} action {count} call cost time test :{costTime}");
+        ProxarLogger.Console($"{info} action {count} call cost time test :{costTime}");
         return costTime;
     }
 }

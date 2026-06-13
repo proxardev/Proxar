@@ -25,15 +25,15 @@ namespace Analyzer
     public static class NamedTypeSymbolExt
     {
 
-        public static T GetSymbolAttrValue<T>(this INamedTypeSymbol self, string attributeClassName, string parameterName)
+        public static bool TryGetSymbolAttrValue<T>(this INamedTypeSymbol self, string attributeClassName, string parameterName, out T value)
         {
             var attr = self.GetAttributes()
                 .FirstOrDefault(a =>
                     a.AttributeClass?.ToDisplayString() == attributeClassName
                 );
-
+            value = default;
             if (attr == null)
-                return default;
+                return false;
             var parameters = attr.AttributeConstructor!.Parameters;
             var args = attr.ConstructorArguments;
 
@@ -41,11 +41,12 @@ namespace Analyzer
             {
                 if (parameters[i].Name == parameterName)
                 {
-                    return (T)args[i].Value;
+                    value = (T)args[i].Value;
+                    return true;
                 }
             }
 
-            return default;
+            return true;
         }
 
     }

@@ -20,7 +20,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+	  <!--
     <ProjectReference Include="..\Analyzer.CodeFixes\Analyzer.CodeFixes.csproj" />
+	  -->
     <ProjectReference Include="..\Analyzer\Proxar.Analyzers.csproj" />
   </ItemGroup>
 
@@ -31,7 +33,9 @@
   <Target Name="_AddAnalyzersToOutput">
     <ItemGroup>
       <TfmSpecificPackageFile Include="$(OutputPath)\Proxar.Analyzers.dll" PackagePath="analyzers/dotnet/cs" />
+	  <!--
       <TfmSpecificPackageFile Include="$(OutputPath)\Analyzer.CodeFixes.dll" PackagePath="analyzers/dotnet/cs" />
+	  -->
     </ItemGroup>
   </Target>
 
