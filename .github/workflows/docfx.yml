@@ -37,9 +37,15 @@ jobs:
 
       - name: Install DocFX
         run: dotnet tool install -g docfx
+      
+      - name: Create localpackages directory
+        run: mkdir -p localpackages
+          
+      - name: Build Analyzer.Package
+        run: dotnet pack tools/Analyzer/Analyzer.Package/Analyzer.Package.csproj -c Release -o ./localpackages
 
       - name: Build documentation
-        run: docfx build src/Proxar.Core/docs/docfx.json
+        run: docfx src/Proxar.Core/docs/docfx.json
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
