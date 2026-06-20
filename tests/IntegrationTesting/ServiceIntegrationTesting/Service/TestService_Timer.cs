@@ -635,7 +635,7 @@ internal partial class TestService_Timer : ServiceBase
             taskList.Add(res);
         }
 
-        var resList = await Proxar.Tasks.ZFTaskHelper.WhenAll(taskList);
+        var resList = await ZFTaskHelper.WhenAll(taskList);
         var errList = resList
             .Where(x => x != "");
         errList.Any().Should().BeFalse();

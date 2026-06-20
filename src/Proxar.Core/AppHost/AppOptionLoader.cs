@@ -19,7 +19,9 @@
 using Microsoft.Extensions.Configuration;
 namespace Proxar.AppHost;
 
-public static class AppOptionsLoader
+
+
+internal static class AppOptionsLoader
 {
     internal static T Load<T>(string[] args)
         where T : AppOptions, new()

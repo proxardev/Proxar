@@ -18,7 +18,13 @@
 
 namespace Proxar.CachePool.Interfaces;
 
+/// <summary>
+/// 定义可重置状态的对象，支持在对象池中回收时进行清理操作。
+/// </summary>
 public interface IResettablePooled
 {
+    /// <summary>
+    /// 重置对象的状态到初始值，以便在对象池中重用。
+    /// </summary>
     void Reset();
 }

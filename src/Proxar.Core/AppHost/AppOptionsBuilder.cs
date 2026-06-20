@@ -16,33 +16,24 @@
  */
 
 
-using Proxar.Core;
-using Proxar.IdGenerator;
-using Proxar.ServiceCore;
-using Proxar.ServiceCore.Interfaces;
-
 namespace Proxar.AppHost;
 
-public class Game : Singleton<Game>
+
+
+/// <summary>
+/// 用于加载和绑定 <see cref="AppOptions"/> 的构造器。支持业务层扩展自定义配置类型。
+/// </summary>
+/// <typeparam name="T">配置类型，必须继承 <see cref="AppOptions"/> 并具有无参数构造函数。</typeparam>
+public class AppOptionsBuilder<T> where T : AppOptions, new()
 {
-    public IIdGenerator<long> IdGenerator2 { get; set; } = new Int64IdSafeGenerator();
+    internal T Options { get; private set; } = null!;
 
-    public IGateMessageInvoker GateMessageInvoker => ActorThreadScope.ServiceGroup.GateMessageInvoker;
-
-    public IIdGenerator<long> SnowflakeIdGenerator { get; set; } = null!;
-
-    public AppOptions AppOptions { get; private set; } = null!;
-
-    internal void GameInit()
+    /// <summary>
+    /// （内部使用）从命令行参数加载并绑定配置。
+    /// </summary>
+    /// <param name="args">命令行参数数组。</param>
+    internal void Load(string[] args)
     {
-        FrameInit.Init();
+        Options = AppOptionsLoader.Load<T>(args);
     }
-
-
-    internal void ConfigureAppOptions(string[] args)
-    {
-        AppOptions = AppOptionsLoader.Load<AppOptions>(args);
-    }
-
-
 }

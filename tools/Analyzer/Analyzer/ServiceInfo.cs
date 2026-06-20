@@ -31,6 +31,7 @@ namespace Analyzer
         public static (int, int) ReservedProto = (900, 999);
         public static int StartProto = 1;
         public const string BaseServiceClassFullName = "Proxar.ServiceCore.ServiceBase";
+        public const string ServiceMethodAttributeName = "Proxar.ServiceCore.ServiceMethodAttribute";
         public const string BaseServiceClassName = "ServiceBase";
         public INamedTypeSymbol ServiceClassSymbol { get; set; }
         public SemanticModel SemanticModel { get; }
@@ -164,7 +165,7 @@ namespace Analyzer
             return $"I{className}";
         }
 
-        public bool IsServiceBaseClas()
+        public bool IsServiceBaseClass()
         {
             return ServiceClassSymbol.ToDisplayString() == BaseServiceClassFullName;
         }

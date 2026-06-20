@@ -18,14 +18,19 @@
 
 namespace Proxar.IdGenerator.SnowflakeId;
 
+/// <summary>
+/// 表示一个已解析的雪花算法 ID，提供对时间戳、工作节点 ID 和序列号的只读访问。
+/// </summary>
 public readonly struct SnowflakeIdStruct
 {
     private readonly long _id;
     private readonly ISnowflakeInfo _info;
 
     /// <summary>
-    /// 通过ID解析组件
+    /// 使用原始 ID 值和信息提供者初始化结构体。信息提供者会在首次访问时延迟调用，并缓存结果。
     /// </summary>
+    /// <param name="id">雪花算法生成的原始 64 位 ID。</param>
+    /// <param name="infoProvider">用于获取 <see cref="ISnowflakeInfo"/> 配置的工厂委托。</param>
     public SnowflakeIdStruct(long id, Func<ISnowflakeInfo> infoProvider)
         : this(infoProvider)
     {
@@ -33,8 +38,13 @@ public readonly struct SnowflakeIdStruct
     }
 
     /// <summary>
-    /// 通过ID解析组件
+    /// 使用原始 ID 值和已有的 <see cref="ISnowflakeInfo"/> 实例初始化结构体。
     /// </summary>
+    /// <param name="id">雪花算法生成的原始 64 位 ID。</param>
+    /// <param name="snowflakeInfo">
+    /// 定义雪花算法位宽、基准时间戳等参数的 <see cref="ISnowflakeInfo"/> 配置，
+    /// 用于解析 <paramref name="id"/> 中的时间戳、工作节点 ID 和序列号。
+    /// </param>
     public SnowflakeIdStruct(long id, ISnowflakeInfo snowflakeInfo)
     {
         _info = snowflakeInfo;
@@ -47,11 +57,27 @@ public readonly struct SnowflakeIdStruct
         _info = infoProvider() ?? throw new ArgumentNullException(nameof(infoProvider));
     }
 
+    /// <summary>
+    /// 获取原始雪花 ID 值。
+    /// </summary>
     public long Id => _id;
+
+    /// <summary>
+    /// 获取从 ID 中解析出的时间戳部分（相对于 <see cref="ISnowflakeInfo.BaseTimestamp"/> 的偏移量）。
+    /// </summary>
     public long Timestamp => (_id >> _info.TimestampShift) & _info.MaxTimestamp;
+
+    /// <summary>
+    /// 获取从 ID 中解析出的工作节点 ID。
+    /// </summary>
     public long WorkerId => (_id >> _info.WorkerIdShift) & _info.MaxWorkerId;
+
+    /// <summary>
+    /// 获取从 ID 中解析出的序列号。
+    /// </summary>
     public long Sequence => _id & _info.MaxSequence;
 
+    /// <inheritdoc/>
     public override string ToString() =>
         $"SnowflakeId[Id={_id}, unit {_info.TimeUnit},Time={Timestamp}, Worker={WorkerId}, Seq={Sequence}]";
 }

@@ -20,7 +20,7 @@ using Proxar.Tasks;
 
 namespace Proxar.ServiceCore;
 
-public class ServiceBootstrapper
+internal class ServiceBootstrapper
 {
     private readonly List<Func<long, ZFTask>> funcs = new List<Func<long, ZFTask>>();
     public ServiceBootstrapper()

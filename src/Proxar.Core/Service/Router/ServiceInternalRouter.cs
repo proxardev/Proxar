@@ -28,7 +28,11 @@ internal class ServiceInternalRouter : IInternalMessageInvoker
     public void SendRaw(long ProxyId, long serviceId, IServiceMessage serviceMessage)
     {
         var service = ServiceManager.Instance.GetService(serviceId);
-        service!.PushMessage(serviceMessage);
+        if (service == null)
+        {
+            return;
+        }
+        service.PushMessage(serviceMessage);
     }
 
     public void PushQueue0MessageRaw(long ProxyId, long serviceId, IServiceMessage serviceMessage)
@@ -44,7 +48,7 @@ internal class ServiceInternalRouter : IInternalMessageInvoker
     public void PushQueue0Message(long ProxyId, long serviceId, IServiceMessage serviceMessage)
     {
         var workerId = ServiceRouterHelper.GetWorkerId(serviceId);
-        if (workerId == Game.Instance.AppOptions.WorkerId)
+        if (workerId == ProxarHost.Instance.AppOptions.WorkerId)
         {
             var service = ServiceManager.Instance.GetService(serviceId);
             if (service != null)

@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+#pragma warning disable CS1591
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;

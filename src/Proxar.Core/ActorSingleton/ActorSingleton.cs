@@ -22,17 +22,39 @@ using Proxar.ServiceCore;
 using System.Runtime.CompilerServices;
 namespace Proxar.ActorSingletonCore;
 
+
+/// <summary>
+/// 基于 Actor 的泛型单例基类。每个 Actor 拥有属于自己的该类型单例实例，
+/// 实例存储于当前 Actor 的 <see cref="Proxar.ServiceSynchronizationContext.ActorSynchronizationContext"/> 中，
+/// 通过 <see cref="ActorSingletonGlobalIdGenerator"/> 分配的固定插槽进行索引。
+/// 使用 <see cref="ThreadStaticAttribute"/> 提供的线程本地缓存加速同一线程内的重复访问。
+/// </summary>
+/// <typeparam name="TSelf">派生类自身的类型。</typeparam>
 public abstract class ActorSingleton<TSelf> :
     IActorSingleton
     where TSelf : ActorSingleton<TSelf>, new()
 {
+    /// <summary>
+    /// 此单例类型在 Actor 单例列表中的固定插槽位置。
+    /// </summary>
     internal static readonly int Slot;
+
+    /// <summary>
+    /// Actor 单例列表的最小长度，即 <see cref="Slot"/> + 1。
+    /// </summary>
     internal static readonly int NeedSize;
+
+    /// <summary>
+    /// 获取拥有此单例实例的服务 ID。
+    /// </summary>
     internal long OwnerServiceId { get; private set; }
 
     [ThreadStatic]
     private static TSelf actorSingletonCache = null!;
 
+    /// <summary>
+    /// 获取当前 Actor 的单例实例。此属性不使用线程本地缓存，每次都从 Actor 上下文中获取。
+    /// </summary>
     public static TSelf CurrentWithNotCache
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -42,9 +64,16 @@ public abstract class ActorSingleton<TSelf> :
         }
     }
 
+    /// <summary>
+    /// 获取当前 Actor 的单例实例，优先使用线程本地缓存以提高性能。
+    /// </summary>
     public static TSelf Current => GetActorSingleton();
 
+    /// <summary>
+    /// 初始化 <see cref="ActorSingleton{TSelf}"/> 的新实例（仅由派生类调用）。
+    /// </summary>
     protected ActorSingleton() { }
+
     static ActorSingleton()
     {
         Slot = ActorSingletonGlobalIdGenerator
@@ -71,7 +100,6 @@ public abstract class ActorSingleton<TSelf> :
         return instance;
     }
 
-
     private static TSelf GetActorSingleton()
     {
         if (actorSingletonCache != null
@@ -81,7 +109,6 @@ public abstract class ActorSingleton<TSelf> :
         }
         return GetActorSingletonFromActor();
     }
-
 
     private static TSelf GetActorSingletonFromActor()
     {
@@ -95,5 +122,6 @@ public abstract class ActorSingleton<TSelf> :
         return actorSingletonCache;
     }
 
+    /// <inheritdoc/>
     public abstract void Dispose();
 }

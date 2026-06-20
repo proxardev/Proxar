@@ -19,7 +19,7 @@
 using Proxar.AppHost;
 using Proxar.AppHost.Interfaces;
 using Proxar.Core;
-using Proxar.IdGenerator;
+using Proxar.IdGenerator.Interfaces;
 using Proxar.IdGenerator.SnowflakeId;
 using Proxar.ServiceCore.Dispatch;
 using System.Buffers;
@@ -43,7 +43,7 @@ internal class ServiceManager : Singleton<ServiceManager>
 
     private static SnowflakeIdGenerator CreateServiceIdGenerator()
     {
-        var generator = new SnowflakeIdGenerator(Game.Instance.AppOptions.WorkerId, ServiceConfig.SnowflakeInfo);
+        var generator = new SnowflakeIdGenerator(ProxarHost.Instance.AppOptions.WorkerId, ServiceConfig.SnowflakeInfo);
         return generator;
     }
 

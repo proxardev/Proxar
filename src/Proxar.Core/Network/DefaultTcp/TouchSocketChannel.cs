@@ -16,6 +16,7 @@
  */
 
 
+using Proxar.Network.Interfaces;
 using Proxar.Tasks;
 using System.Buffers.Binary;
 using System.Net;

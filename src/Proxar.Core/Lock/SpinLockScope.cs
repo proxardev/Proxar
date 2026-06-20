@@ -18,7 +18,7 @@
 
 namespace Proxar.Threading;
 
-public sealed class SpinLockScope
+internal sealed class SpinLockScope
 {
     private SpinLock _spinlock = new SpinLock();
 

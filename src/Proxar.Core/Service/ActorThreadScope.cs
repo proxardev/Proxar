@@ -70,7 +70,7 @@ internal static class ActorThreadScope
     {
         var actorSynchronizationContext = SynchronizationContextHelper
             .GetSynchronization<ActorSynchronizationContext>()!;
-        ActorSingletonList = actorSynchronizationContext.ActorSingletonList;
+        ActorSingletonList = actorSynchronizationContext.ActorSingletons;
         Service = actorSynchronizationContext.GetService();
 
         ExpireAt = TimeHelper.GetSecond() + CacheLiveTime;

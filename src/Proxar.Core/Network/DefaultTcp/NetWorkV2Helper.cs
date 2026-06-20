@@ -26,14 +26,14 @@ public static class NetWorkV2Helper
 {
     public static async ZFTask Configure(OnChannelConnectedCallback? onClientConnectedCallback)
     {
-        var ip = Game.Instance.AppOptions.Ip;
-        var port = Game.Instance.AppOptions.Port;
+        var ip = ProxarHost.Instance.AppOptions.Ip;
+        var port = ProxarHost.Instance.AppOptions.Port;
         if (ip.Count() != 0 && port != 0)
         {
             await TcpSocketManager.Instance.InitializeInternalNetworkSocketService(ip, port);
         }
-        var clientIp = Game.Instance.AppOptions.ClientIp;
-        var clientPort = Game.Instance.AppOptions.ClientPort;
+        var clientIp = ProxarHost.Instance.AppOptions.ClientIp;
+        var clientPort = ProxarHost.Instance.AppOptions.ClientPort;
         if (clientIp.Count() != 0 && clientPort != 0)
         {
             await TcpSocketManager.Instance.InitializeExternalNetworkSocketService(clientIp, clientPort, onClientConnectedCallback);

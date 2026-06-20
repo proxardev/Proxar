@@ -17,7 +17,7 @@
 
 
 using Proxar.AppHost;
-using Proxar.Network;
+using Proxar.Network.Interfaces;
 using Proxar.ServiceCore;
 using ServiceIntegrationTesting.TestMessageSendAndRecevice;
 using TestShared;
@@ -66,11 +66,11 @@ public class TestClass_Message_C2S : TestClass_MessageBase<TestService_Message, 
         TestInitializer.ClientServiceGroup.ServiceGroupExecute(
             () =>
             {
-                Game.Instance.GateMessageInvoker
+                ProxarHost.Instance.GateMessageInvoker
                     .AddChannel(clientChannel);
-                Game.Instance.GateMessageInvoker
+                ProxarHost.Instance.GateMessageInvoker
                     .SetTarget2Channel(targetId, clientChannel.Id);
-                Game.Instance.GateMessageInvoker
+                ProxarHost.Instance.GateMessageInvoker
                     .SetTargetServiceMapping(targetId, TestService_CustomReceiveMessageExternalProxy.ProxyId, clientServiceId);
             }
         );
@@ -78,11 +78,11 @@ public class TestClass_Message_C2S : TestClass_MessageBase<TestService_Message, 
         TestInitializer.ServerServiceGroup.ServiceGroupExecute(
             () =>
             {
-                Game.Instance.GateMessageInvoker
+                ProxarHost.Instance.GateMessageInvoker
                     .AddChannel(serverChannel);
-                Game.Instance.GateMessageInvoker
+                ProxarHost.Instance.GateMessageInvoker
                     .SetTarget2Channel(targetId, serverChannel.Id);
-                Game.Instance.GateMessageInvoker
+                ProxarHost.Instance.GateMessageInvoker
                     .SetTargetServiceMapping(targetId, TestService_CustomReceiveMessageExternalProxy.ProxyId, serverServiceId);
             }
         );
@@ -104,7 +104,7 @@ public class TestClass_Message_C2S : TestClass_MessageBase<TestService_Message, 
 
     private static void Channel_MessageReceived(IChannel channel, ReadOnlyMemory<byte> readOnlyMemory)
     {
-        Game.Instance.GateMessageInvoker
+        ProxarHost.Instance.GateMessageInvoker
             .ReceiveChannelData(channel, readOnlyMemory.ToArray());
     }
 

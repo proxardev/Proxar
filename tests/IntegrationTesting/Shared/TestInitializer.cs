@@ -23,6 +23,7 @@ using Proxar.AppHost;
 using Proxar.AppHost.Interfaces;
 using Proxar.IdGenerator;
 using Proxar.Network;
+using Proxar.Network.Interfaces;
 using Proxar.ServiceCore;
 using Proxar.Tasks;
 using Proxar.Utilities;

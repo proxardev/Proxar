@@ -23,7 +23,6 @@ using Proxar.Tasks;
 using System.Net.Sockets;
 namespace Proxar.ServiceCore;
 
-
 public abstract partial class ServiceBase
 {
 
@@ -44,10 +43,6 @@ public abstract partial class ServiceBase
         }
         return (penddingTable[type] as PendingTable<T>)!;
     }
-
-
-    //protected abstract Dictionary<Type, object> GetPendingTable();
-
 
     internal ZFTask<T> SetPendingTable<T>(long msgSeq)
     {
@@ -80,7 +75,7 @@ public abstract partial class ServiceBase
         _msgSeq2TypeTable[msgSeq] = type;
     }
 
-    protected Type? GetMsgCallResultType(long msgSeq)
+    private Type? GetMsgCallResultType(long msgSeq)
     {
         if (!_msgSeq2TypeTable.ContainsKey(msgSeq))
         {
@@ -89,17 +84,21 @@ public abstract partial class ServiceBase
         return _msgSeq2TypeTable[msgSeq];
     }
 
-    protected void RemoveMsgCallResultType(long msgSeq)
+    private void RemoveMsgCallResultType(long msgSeq)
     {
         this._msgSeq2TypeTable.Remove(msgSeq);
     }
 
-    protected int GetCallWaitCOunt()
+    /// <summary>
+    /// 获取当前待处理的 RPC 调用数量。
+    /// </summary>
+    /// <returns>待处理的调用数量。</returns>
+    protected int GetCallWaitCount()
     {
         return this._msgSeq2TypeTable.Count;
     }
 
-    public void Dispatch()
+    private void Dispatch()
     {
         var msg = this.curMessage!;
         this.curMsgSourceServiceId = msg.GetFromServiceId();
@@ -211,18 +210,27 @@ public abstract partial class ServiceBase
     [ServiceMethod(ProtoBase.EchoConfirm)]
     private int ExecuteEchoConfirm()
     {
-        Reply(1);
         return 1;
     }
 
 #pragma warning restore P0004 // 服务方法保留协议约束
 
+    /// <summary>
+    /// 处理 RPC 回调，将响应结果设置到对应的挂起表中。
+    /// </summary>
+    /// <param name="msgSeq">消息序列号。</param>
+    /// <param name="serviceMessage">包含响应数据的服务消息。</param>
     protected virtual void OnRpcCallBack(long msgSeq, IServiceMessage serviceMessage)
     {
         var penddingTable = this.PopPenddingTableByMsgSeq(msgSeq);
         penddingTable?.SetResult(msgSeq, serviceMessage);
     }
 
+    /// <summary>
+    /// 处理 RPC 回调异常，将异常信息设置到对应的挂起表中。
+    /// </summary>
+    /// <param name="msgSeq">消息序列号。</param>
+    /// <param name="serviceMessage">包含异常信息的服务消息。</param>
     protected virtual void OnRpcCallBackError(long msgSeq, IServiceMessage serviceMessage)
     {
         var penddingTable = this.PopPenddingTableByMsgSeq(msgSeq);
@@ -276,18 +284,22 @@ public abstract partial class ServiceBase
     }
 
 
-    protected virtual void OnReceiveSocket(Socket socket)
+    private void OnReceiveSocket(Socket socket)
     {
         throw new NotImplementedException();
     }
 
+    /// <summary>
+    /// 当服务进入关闭流程时调用，派生类可重写此方法执行自定义清理逻辑。
+    /// </summary>
+    /// <returns>一个表示异步关闭操作的 <see cref="ZFTask"/>。</returns>
     protected virtual async ZFTask OnCloseService()
     {
         await ZFTask.CompletedTask;
     }
 
 
-    protected void Reply<T>(T result)
+    private void Reply<T>(T result)
     {
         var fromServiceId = this.curMsgSourceServiceId;
         if (fromServiceId == 0)
@@ -311,7 +323,7 @@ public abstract partial class ServiceBase
 
     }
 
-    protected Action<T>? PackReplyAction<T>()
+    private Action<T>? PackReplyAction<T>()
     {
         var serviceId = this.curMsgSourceServiceId;
         var msgSeq = this.curMsgSeq;
@@ -368,11 +380,19 @@ public abstract partial class ServiceBase
         return action;
     }
 
+    /// <summary>
+    /// 获取当前消息的来源服务 ID，用于在协议方法中构造 RPC 响应。
+    /// </summary>
+    /// <returns>来源服务的唯一标识符。</returns>
     protected internal long GetResponseServiceId()
     {
         return this.curMsgSourceServiceId;
     }
 
+    /// <summary>
+    /// 获取当前消息的序列号（MsgSeq），用于在协议方法中构造 RPC 响应头。
+    /// </summary>
+    /// <returns>当前消息的序列号。</returns>
     protected internal long GetResponseMsgIdx()
     {
         return this.curMsgSeq;

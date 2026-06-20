@@ -21,8 +21,13 @@ namespace Proxar.IdGenerator;
 
 
 
+/// <summary>
+/// 提供线程安全的 <see cref="long"/> 类型递增操作，使用 <see cref="Interlocked.Increment(ref long)"/> 实现原子自增。
+/// 继承自 <see cref="Singleton{Int64SafeIncrementer}"/>，保证全局唯一实例，通常作为多线程环境下 ID 生成器的增量组件。
+/// </summary>
 public class Int64SafeIncrementer : Singleton<Int64SafeIncrementer>, IIncrementer<long>
 {
+    /// <inheritdoc/>
     public long Increment(ref long value)
     {
         var res = Interlocked.Increment(ref value);

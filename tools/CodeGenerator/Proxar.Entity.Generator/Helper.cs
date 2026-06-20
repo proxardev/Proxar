@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+#pragma warning disable CS1591
 
 namespace ZFSourceGenerator
 {

@@ -18,7 +18,7 @@
 
 namespace Proxar.Utilities;
 
-public static class RangeHelper
+internal static class RangeHelper
 {
 
     public static IEnumerable<int> Range(int range)

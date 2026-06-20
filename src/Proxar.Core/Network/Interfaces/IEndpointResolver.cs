@@ -16,9 +16,17 @@
  */
 
 
-namespace Proxar.Network;
+namespace Proxar.Network.Interfaces;
 
+/// <summary>
+/// 定义Ip端口解析器，用于根据工作节点 ID 解析出对应的 IP 地址和端口号。
+/// </summary>
 public interface IEndpointResolver
 {
+    /// <summary>
+    /// 根据指定的工作节点 ID 解析网络ip和端口。
+    /// </summary>
+    /// <param name="workerId">工作节点的唯一标识符。</param>
+    /// <returns>包含 IP 地址和端口号的元组。</returns>
     (string Ip, int Port) Resolve(long workerId);
 }

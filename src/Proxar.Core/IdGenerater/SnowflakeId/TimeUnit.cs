@@ -18,8 +18,18 @@
 
 namespace Proxar.IdGenerator.SnowflakeId;
 
+/// <summary>
+/// 时间单位枚举，用于指定雪花算法中时间戳的精度。
+/// </summary>
 public enum TimeUnit
 {
+    /// <summary>
+    /// 秒级精度。
+    /// </summary>
     Seconds,
+
+    /// <summary>
+    /// 毫秒级精度。
+    /// </summary>
     Milliseconds
 }

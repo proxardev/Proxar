@@ -18,6 +18,9 @@
 
 namespace Proxar.IdGenerator;
 
+/// <summary>
+/// 基于 <see cref="Int64Incrementer"/> 的 <see cref="long"/> 类型 ID 生成器。此实现非线程安全。
+/// </summary>
 public class Int64IdGenerator : AbstractIdGenerator<long, Int64Incrementer>
 {
 }

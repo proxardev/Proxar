@@ -28,6 +28,6 @@ internal class ResponseMessage<T>
     //public ResponseStatus Status;
 }
 
-public enum ResponseStatus
+internal enum ResponseStatus
 {
 }

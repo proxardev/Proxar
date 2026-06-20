@@ -17,7 +17,7 @@
 
 
 using FluentAssertions;
-using Proxar.IdGenerator;
+using Proxar.IdGenerator.Interfaces;
 
 namespace FrameUnitTest.IdGeneratorTest;
 

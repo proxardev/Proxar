@@ -18,6 +18,9 @@
 
 namespace Proxar.ActorSingletonCore.Interfaces;
 
+/// <summary>
+/// 定义基于 Actor 的单例组件
+/// </summary>
 public interface IActorSingleton : IDisposable
 {
 }

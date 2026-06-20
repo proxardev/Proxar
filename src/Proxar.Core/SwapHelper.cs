@@ -19,7 +19,7 @@
 namespace Proxar.Utilities;
 
 
-public static class SwapHelper
+internal static class SwapHelper
 {
     public static void Swap<T>(ref T a, ref T b)
     {

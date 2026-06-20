@@ -16,7 +16,7 @@
  */
 
 
-using Proxar.IdGenerator;
+using Proxar.IdGenerator.Interfaces;
 using Proxar.IdGenerator.SnowflakeId;
 using Proxar.Logging;
 using Proxar.ServiceCore;
@@ -31,13 +31,13 @@ internal static class StartHelper
 
     private static async ZFTask CheckConfigDefault(long serviceId)
     {
-        Game.Instance.SnowflakeIdGenerator = CreateSnowflakeIdGenerator();
+        ProxarHost.Instance.SnowflakeIdGenerator = CreateSnowflakeIdGenerator();
         await ZFTask.CompletedTask;
     }
 
     private static IIdGenerator<long> CreateSnowflakeIdGenerator()
     {
-        var generator = new SnowflakeIdGenerator(Game.Instance.AppOptions.WorkerId, ServiceConfig.SnowflakeInfo);
+        var generator = new SnowflakeIdGenerator(ProxarHost.Instance.AppOptions.WorkerId, ServiceConfig.SnowflakeInfo);
         return generator;
     }
 
@@ -68,7 +68,7 @@ internal static class StartHelper
 
         ZFTask.NextFrameHander = Service.NextFrame;
 
-        Game.Instance.GameInit();
+        ProxarHost.Instance.GameInit();
     }
 
     internal static long CreateMainService(List<Func<long, ZFTask>> funcs)

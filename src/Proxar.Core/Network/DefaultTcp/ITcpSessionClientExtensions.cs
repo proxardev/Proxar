@@ -16,6 +16,7 @@
  */
 
 
+using Proxar.Network.Interfaces;
 using TouchSocket.Core;
 using TouchSocket.Sockets;
 

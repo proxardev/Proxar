@@ -15,10 +15,21 @@
  * limitations under the License.
  */
 
+using Proxar.Logging;
+
 namespace Proxar.Tasks;
 
+/// <summary>
+/// ZFTask 的全局配置，例如未处理异常的回调设置。
+/// </summary>
 public static class ZFTaskConfig
 {
-    public static Action<Exception>? UnhandledExceptionHandler { get; set; } = null;
-
+    /// <summary>
+    /// 获取或设置当 ZFTask 发生未处理异常时的回调。
+    /// 默认为 <see cref="ProxarLogger.Error(Exception)"/>，将异常记录到日志系统。
+    /// </summary>
+    /// <remarks>
+    /// 该回调通常用于记录日志或上报异常，业务方有需要可在启动时注入。
+    /// </remarks>
+    public static Action<Exception>? UnhandledExceptionHandler { get; set; } = ProxarLogger.Error;
 }

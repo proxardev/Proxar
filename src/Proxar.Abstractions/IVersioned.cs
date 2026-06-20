@@ -15,9 +15,16 @@
  * limitations under the License.
  */
 
+
 namespace Proxar.Abstractions;
 
+/// <summary>
+/// 定义具备版本号的组件。
+/// </summary>
 public interface IVersioned
 {
+    /// <summary>
+    /// 获取当前组件的版本号。
+    /// </summary>
     int Version { get; }
 }

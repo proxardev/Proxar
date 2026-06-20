@@ -16,6 +16,7 @@
  */
 
 
+using Proxar.Network.Interfaces;
 using Proxar.ServiceCore.Message;
 
 namespace Proxar.Network;

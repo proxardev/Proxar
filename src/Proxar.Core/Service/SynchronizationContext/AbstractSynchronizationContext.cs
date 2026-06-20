@@ -18,7 +18,14 @@
 
 namespace Proxar.ServiceSynchronizationContext;
 
+/// <summary>
+/// 抽象同步上下文，提供在关联的调度器上投递操作的基类。
+/// </summary>
 public abstract class AbstractSynchronizationContext : SynchronizationContext
 {
+    /// <summary>
+    /// 将指定的操作投递到关联的调度器，操作将在调度器的线程上异步执行。
+    /// </summary>
+    /// <param name="action">要异步执行的操作。</param>
     public abstract void Post(Action action);
 }

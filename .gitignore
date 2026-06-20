@@ -430,3 +430,9 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+
+
+# 忽略 Proxar.Core 项目下的 DocFX 生成物
+src/Proxar.Core/docs/api/
+src/Proxar.Core/docs/_site/

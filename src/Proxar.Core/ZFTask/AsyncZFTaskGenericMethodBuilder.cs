@@ -14,12 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#pragma warning disable CS1591
 
-
+using Proxar.Core;
 using System.Runtime.CompilerServices;
 
 namespace Proxar.Tasks;
 
+
+[ExcludeFromDoc]
 public struct AsyncZFTaskGenericMethodBuilder<TRet>
 {
     private ZFTask<TRet> task;

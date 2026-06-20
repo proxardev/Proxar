@@ -15,23 +15,17 @@
  * limitations under the License.
  */
 
+namespace Proxar.IdGenerator.Interfaces;
 
-using Proxar.Core.Extensions;
-
-namespace Proxar.ServiceCore.Interfaces;
-
-
-public class ExternalServiceMapping
+/// <summary>
+/// 定义 ID 生成器接口，用于生成指定类型的唯一标识符。
+/// </summary>
+/// <typeparam name="T">生成的标识符类型。</typeparam>
+public interface IIdGenerator<T>
 {
-    private Dictionary<long, long> _externalServices = new Dictionary<long, long>();
-
-    public void SetMapping(long type, long serviceId)
-    {
-        _externalServices[type] = serviceId;
-    }
-
-    public long GetMapping(long type)
-    {
-        return _externalServices.Get(type);
-    }
+    /// <summary>
+    /// 生成一个新的唯一标识符。
+    /// </summary>
+    /// <returns>新生成的唯一标识符。</returns>
+    public T NewId();
 }

@@ -16,24 +16,30 @@
  */
 
 
+using Proxar.IdGenerator.Interfaces;
 using Proxar.Utilities;
 namespace Proxar.IdGenerator.SnowflakeId;
 
+
+
 /// <summary>
-/// 鍙厤缃寲闆姳ID绠楁硶鐢熸垚鍣?
+/// 基于雪花算法的 ID 生成器，实现 <see cref="IIdGenerator{Int64}"/>，可在分布式系统中生成趋势递增的唯一标识符。
 /// </summary>
 public class SnowflakeIdGenerator : IIdGenerator<long>
 {
     private readonly ISnowflakeInfo _info;
     private readonly long _workerId;
 
-    private long _state = 0; // 楂?timestampBits 浣嶏細鏃堕棿鎴筹紱浣?sequenceBits 浣嶏細搴忓垪鍙?
+    // 高 timestampBits 位：时间戳；低 sequenceBits 位：序列号
+    private long _state = 0;
 
     /// <summary>
-    /// 鏋勯€犻洩鑺盜D鐢熸垚鍣?
+    /// 初始化雪花 ID 生成器实例。
     /// </summary>
-    /// <param name="workerId">鏈哄櫒ID</param>
-    /// <param name="snowflakeInfo">闆姳绠楁硶閰嶇疆淇℃伅</param>
+    /// <param name="workerId">工作节点 ID，必须在 0 到 <see cref="ISnowflakeInfo.MaxWorkerId"/> 之间。</param>
+    /// <param name="snowflakeInfo">雪花算法的配置信息，包含位宽分配和时间单位等。</param>
+    /// <exception cref="ArgumentNullException"><paramref name="snowflakeInfo"/> 为 null。</exception>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="workerId"/> 超出有效范围。</exception>
     public SnowflakeIdGenerator(long workerId, ISnowflakeInfo snowflakeInfo)
     {
         _info = snowflakeInfo ?? throw new ArgumentNullException(nameof(snowflakeInfo));
@@ -41,14 +47,15 @@ public class SnowflakeIdGenerator : IIdGenerator<long>
         if (workerId < 0 || workerId > _info.MaxWorkerId)
             throw new ArgumentOutOfRangeException(
                 nameof(workerId),
-                $"鏈哄櫒ID蹇呴』鍦?0 ~ {_info.MaxWorkerId} 涔嬮棿");
+                $"工作节点 ID 必须在 0 到 {_info.MaxWorkerId} 之间");
 
         _workerId = workerId;
     }
 
     /// <summary>
-    /// 鐢熸垚涓嬩竴涓敮涓€ID
+    /// 生成下一个唯一 ID。
     /// </summary>
+    /// <returns>一个趋势递增的全局唯一标识符。</returns>
     public long NewId()
     {
         while (true)

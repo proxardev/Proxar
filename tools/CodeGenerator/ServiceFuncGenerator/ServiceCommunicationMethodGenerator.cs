@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#pragma warning disable CS1591
 
 
 using Microsoft.CodeAnalysis;
@@ -94,6 +95,8 @@ namespace ZFSourceGenerator
             var genericTypeStatement = Helper.MakeGenericStatement(argsTemplateList);
             var realArgsStatement = Helper.MakeRealArgsStatement(argsTemplateList, argsList);
             var func = $@"
+    /// <summary>
+    /// </summary>
     public static void Send{genericTypeStatement}(long serviceId, int proto,{realArgsStatement} IMessageHeader header = null)
     {{
 {this.MakeMessageHandleBody(argsTemplateList, argsList)}
@@ -130,6 +133,8 @@ namespace ZFSourceGenerator
 
 
             var func = $@"
+    /// <summary>
+    /// </summary>
     public static ZFTask<{resultType}> Call{genericTypeStatement}(this CallResult<{resultType}> _,
         ServiceBase fromService, long serviceId, int proto,{realArgsStatement} IMessageHeader header = null)
     {{
@@ -142,6 +147,8 @@ namespace ZFSourceGenerator
         return ts;
     }}
 
+    /// <summary>
+    /// </summary>
     public static ZFTask<{resultType}> Call{genericTypeStatement}(this CallResult<{resultType}> _,
         long serviceId, int proto, {realArgsStatement} IMessageHeader header = null)
     {{
@@ -154,6 +161,8 @@ namespace ZFSourceGenerator
         return ts;
     }}
 
+    /// <summary>
+    /// </summary>
     public static ZFTask<{resultType}> Call{genericTypeStatement}(this CallResult<{resultType}> _,
         long serviceId, int proto, {realArgsStatement} IMessageInvoker messageInvoker, long ProxyId, IMessageHeader header = null)
     {{
@@ -167,6 +176,8 @@ fromServiceId: "fromServiceId", msgSeq: "msgSeq", messageInvoker: "messageInvoke
         return ts;
     }}
 
+    /// <summary>
+    /// </summary>
     internal static ZFTask<{resultType}> CallRaw{genericTypeStatement}(this CallResult<{resultType}> _,
         long serviceId, int proto, {realArgsStatement} IMessageHeader header = null)
     {{
@@ -179,6 +190,8 @@ fromServiceId: "fromServiceId", msgSeq: "msgSeq", messageInvoker: "messageInvoke
         return ts;
     }}
 
+    /// <summary>
+    /// </summary>
     internal static ZFTask<{resultType}> CallQueue0{genericTypeStatement}(this CallResult<{resultType}> _,
         long serviceId, int proto, {realArgsStatement} IMessageHeader header = null)
     {{
@@ -191,6 +204,8 @@ fromServiceId: "fromServiceId", msgSeq: "msgSeq", messageInvoker: "messageInvoke
         return ts;
     }}
 
+    /// <summary>
+    /// </summary>
     internal static ZFTask<{resultType}> CallQueue0Raw{genericTypeStatement}(this CallResult<{resultType}> _,
         long serviceId, int proto, {realArgsStatement} IMessageHeader header = null)
     {{

@@ -17,6 +17,7 @@
 
 
 using Proxar.Network;
+using Proxar.Network.Interfaces;
 using Proxar.ServiceCore.Interfaces;
 
 namespace ServiceIntegrationTesting;
@@ -25,9 +26,9 @@ namespace ServiceIntegrationTesting;
 
 public class ClientMessageInvoker : IMessageInvoker
 {
-    private Proxar.Network.IChannel channel;
+    private IChannel channel;
 
-    public ClientMessageInvoker(Proxar.Network.IChannel channel)
+    public ClientMessageInvoker(IChannel channel)
     {
         this.channel = channel;
     }

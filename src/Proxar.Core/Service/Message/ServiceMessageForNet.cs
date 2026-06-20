@@ -21,20 +21,31 @@ using Proxar.Network;
 using System.Buffers;
 namespace Proxar.ServiceCore.Message;
 
-
+/// <summary>
+/// 从网络接收的原始字节构造的服务消息，负责解析消息头并将消息投递到目标服务的消息队列。
+/// </summary>
+/// <remarks>
+/// 此消息类型用于内部服务或客户端发送的网络消息。
+/// 它直接从字节数组读取，通过 <see cref="NetMessageDeserialize"/> 解析头部信息，并通过 <see cref="NetMessageHandle"/> 将消息推送到目标服务的队列。
+/// </remarks>
 public class ServiceMessageForNet : AbstractServiceMessage, INetMessage
 {
     private ReadOnlySequence<byte> readOnlySequence;
     private int readOffset = 0;
     private byte[] bytes = null!;
 
+    /// <summary>
+    /// 使用指定的字节数组初始化 <see cref="ServiceMessageForNet"/> 的新实例。
+    /// </summary>
+    /// <param name="bytes">从网络接收的原始消息字节。</param>
     public ServiceMessageForNet(byte[] bytes)
     {
         this.bytes = bytes;
         this.readOffset = 0;
-        this.readOnlySequence = new ReadOnlySequence<byte>(bytes);
+        this.readOnlySequence = new ReadOnlySequence<byte>(this.bytes);
     }
 
+    /// <inheritdoc/>
     public override MessagePackReader GetMessagePackReader()
     {
         MessagePackReader reader;
@@ -48,16 +59,19 @@ public class ServiceMessageForNet : AbstractServiceMessage, INetMessage
         return reader;
     }
 
+    /// <inheritdoc/>
     public override IBufferWriter<byte> GetSerializeArgeWriter()
     {
         throw new NotImplementedException();
     }
 
+    /// <inheritdoc/>
     public ReadOnlyMemory<byte> NetMessageSerialize()
     {
         throw new NotImplementedException();
     }
 
+    /// <inheritdoc/>
     public void NetMessageDeserialize()
     {
         var reader = this.GetMessagePackReader();
@@ -68,17 +82,21 @@ public class ServiceMessageForNet : AbstractServiceMessage, INetMessage
         readOffset = (int)reader.Consumed;
     }
 
+    /// <inheritdoc/>
     public override void SerializeArgs(IBufferWriter<byte> writer)
     {
         throw new NotImplementedException();
     }
 
+    /// <inheritdoc/>
     public void NetMessageHandle()
     {
-        //Service.MessageInvoker.SendLocal(0, toServiceId, this);
         this.PushMessage();
     }
 
+    /// <summary>
+    /// 根据 <see cref="AbstractServiceMessage.GetToServiceId"/> 获取目标服务，并将当前消息推送到该服务的队列。
+    /// </summary>
     private void PushMessage()
     {
         var toServiceId = this.GetToServiceId();
@@ -90,17 +108,20 @@ public class ServiceMessageForNet : AbstractServiceMessage, INetMessage
         service.PushMessage(this);
     }
 
+    /// <inheritdoc/>
     public void NetMessageSerialize(IBufferWriter<byte> writer)
     {
         throw new NotImplementedException();
     }
 
+    /// <inheritdoc/>
     public override ReadOnlyMemory<byte> GetPayloadReadOnlyMemory()
     {
         throw new NotImplementedException();
     }
 
-    public override void OnConsumed(long consumed)
+    /// <inheritdoc/>
+    protected override void OnConsumed(long consumed)
     {
         readOffset += (int)consumed;
     }

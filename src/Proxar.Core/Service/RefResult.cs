@@ -21,12 +21,19 @@ using System.Diagnostics.CodeAnalysis;
 namespace Proxar.ServiceCore;
 
 /// <summary>
-/// 用于特定情况下，在服务之间传递引用对象
-/// 在当前进程下，A服务调用B服务，请求生成xx对象，在确保调用返回前，A不会使用该对象，在调用开始返回后，B不会使用、处理该对象，则可以将RefResult传入，B设置Value，返回给A使用
+/// 用于在当前进程的服务之间传递引用对象。
 /// </summary>
-/// <typeparam name="T"></typeparam>
+/// <remarks>
+/// A 服务调用 B 服务，请求生成 <typeparamref name="T"/> 对象并返回给 A 使用。需确保：
+/// 1. 调用返回前，A 不会使用该对象。
+/// 2. 调用返回后，B 不再使用或修改该对象。
+/// </remarks>
+/// <typeparam name="T">传递的引用对象的类型。</typeparam>
 public class RefResult<T>
 {
+    /// <summary>
+    /// 结果值。
+    /// </summary>
     [AllowNull]
     public T Value { get; set; }
 }

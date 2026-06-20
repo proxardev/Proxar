@@ -18,6 +18,7 @@
 
 using Proxar.AppHost;
 using Proxar.Network;
+using Proxar.Network.Interfaces;
 using Proxar.ServiceCore;
 using Proxar.ServiceCore.Message;
 
@@ -47,7 +48,7 @@ public sealed class LocalNotSocketClientChannel : IChannel
 #pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
     {
         this.MessageReceived += (c, r) => ClientChannel_MessageReceived(serviceId, c, r);
-        Id = Game.Instance.SnowflakeIdGenerator.NewId();
+        Id = ProxarHost.Instance.SnowflakeIdGenerator.NewId();
     }
 
 

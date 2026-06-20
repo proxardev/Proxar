@@ -18,7 +18,7 @@
 
 namespace Proxar.ServiceSynchronizationContext;
 
-public static class SynchronizationContextHelper
+internal static class SynchronizationContextHelper
 {
 
     public static SynchronizationContext? GetSynchronization()

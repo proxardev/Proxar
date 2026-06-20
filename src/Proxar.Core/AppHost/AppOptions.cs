@@ -18,6 +18,7 @@
 
 namespace Proxar.AppHost;
 
+// TODO-接口抽象
 /// <summary>
 /// 程序全局配置
 /// </summary>

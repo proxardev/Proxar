@@ -226,11 +226,27 @@ public class ServiceDispatchMessageMethodGenerator : IIncrementalGenerator
         var protoDefinesInfo = MakeProtoConstDefineClass(serviceInfo);
         var usingInfo = serviceInfo.GetUsingString();
         var defaultHandle = "base.Dispatch(proto, msg);";
-        var fff = "override";
-        if (serviceInfo.IsServiceBaseClas())
+        var dispatchModifier = "override";
+        var docData = @"
+    /// <inheritdoc/>
+";
+        if (serviceInfo.IsServiceBaseClass())
         {
             defaultHandle = "";
-            fff = "virtual";
+            dispatchModifier = "virtual";
+            docData = $@"
+    /// <summary>
+    /// 根据协议编号将消息分派到对应的协议方法。此方法由源生成器自动生成，
+    /// 包含了当前服务所有标记为 <see cref=""Proxar.ServiceCore.ServiceMethodAttribute""/> 的方法的 <see langword=""switch""/> 分支。
+    /// </summary>
+    /// <param name=""proto"">协议方法编号（Proto）。</param>
+    /// <param name=""msg"">当前消息实例，包含已反序列化的头部和负载。</param>
+    /// <remarks>
+    /// 此方法重写基类的 <see cref=""ServiceBase.Dispatch(int, IServiceMessage)""/> 以添加自定义协议处理。
+    /// 当 <paramref name=""proto""/> 匹配到自定义方法时，执行对应的消息反序列化和方法调用；
+    /// 否则交由基类处理框架内置协议（如服务启动、RPC 回调等）。
+    /// </remarks>
+";
         }
         var code = $@"
 using System;
@@ -247,7 +263,8 @@ using Proxar.ServiceCore.Message;
 {accessibility} partial class {className}
 {{
 
-    protected {fff} void Dispatch(int proto, IServiceMessage msg)
+{docData}
+    protected {dispatchModifier} void Dispatch(int proto, IServiceMessage msg)
     {{
         switch (proto)
         {{
@@ -297,12 +314,12 @@ using Proxar.ServiceCore.Message;
 
         var protoClassInfo = $@"
 
-public static class {serviceInfo.GetConstProtoClassName()}
+internal static class {serviceInfo.GetConstProtoClassName()}
 {{
 {constProto}
 }};
 
-public enum {serviceInfo.GetEnumProtoClassName()}
+internal enum {serviceInfo.GetEnumProtoClassName()}
 {{
 {enumProto}
 }}

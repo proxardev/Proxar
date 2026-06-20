@@ -16,11 +16,11 @@
  */
 
 
-using Proxar.IdGenerator;
+using Proxar.IdGenerator.Interfaces;
 namespace Proxar.ActorSingletonCore;
 
 
-public class IdGeneratorActorSingleton<TSingletonClass, TIdType, TIdGenerator> :
+internal class IdGeneratorActorSingleton<TSingletonClass, TIdType, TIdGenerator> :
     ActorSingleton<TSingletonClass>
     where TSingletonClass : ActorSingleton<TSingletonClass>, new()
     where TIdGenerator : IIdGenerator<TIdType>, new()

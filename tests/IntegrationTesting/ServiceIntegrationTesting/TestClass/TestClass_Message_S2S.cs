@@ -17,7 +17,7 @@
 
 
 
-using Proxar.IdGenerator;
+using Proxar.IdGenerator.Interfaces;
 using Proxar.IdGenerator.SnowflakeId;
 using Proxar.ServiceCore;
 using TestShared;

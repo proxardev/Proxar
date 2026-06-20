@@ -18,10 +18,32 @@
 
 namespace Proxar.ServiceCore;
 
+/// <summary>
+/// 定义服务的运行状态。
+/// </summary>
+/// <remarks>
+/// 服务状态包括：未启动、正在运行、等待关闭和已关闭。
+/// 用于定义追踪服务的生命周期阶段。
+/// </remarks>
 public enum ServiceStatue
 {
+    /// <summary>
+    /// 服务尚未启动或处于未知状态。
+    /// </summary>
     None = 0,
+
+    /// <summary>
+    /// 服务正在正常运行中。
+    /// </summary>
     Running = 1,
+
+    /// <summary>
+    /// 服务已收到关闭信号，正在执行清理或等待当前任务完成。
+    /// </summary>
     WaitClose = 3,
-    Close = 4,
+
+    /// <summary>
+    /// 服务已完全停止，资源已释放。
+    /// </summary>
+    Close = 4
 }

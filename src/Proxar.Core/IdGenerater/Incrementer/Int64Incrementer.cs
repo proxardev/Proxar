@@ -21,8 +21,14 @@ namespace Proxar.IdGenerator;
 
 
 
+/// <summary>
+/// 提供对 <see cref="long"/> 类型值的递增操作，通常作为 ID 生成器的增量组件。
+/// 通过 <see cref="Singleton{Int64Incrementer}"/> 保证全局唯一实例。
+/// 此实现非线程安全。
+/// </summary>
 public class Int64Incrementer : Singleton<Int64Incrementer>, IIncrementer<long>
 {
+    /// <inheritdoc/>
     public long Increment(ref long value)
     {
         var val = value;

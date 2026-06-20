@@ -17,6 +17,7 @@
 
 
 using Proxar.Network;
+using Proxar.Network.Interfaces;
 using Proxar.ServiceCore.Interfaces;
 using System.Diagnostics.CodeAnalysis;
 
@@ -27,7 +28,7 @@ namespace TestShared.Client;
 public static class ChannelHelper
 {
     [AllowNull]
-    public static Proxar.Network.IChannel channel { get; set; }
+    public static IChannel channel { get; set; }
 
 
     public static void SendMessageToClient(IServiceMessage serviceMessage)

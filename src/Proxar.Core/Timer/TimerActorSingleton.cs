@@ -22,6 +22,9 @@ using Proxar.Timer.Interfaces;
 
 namespace Proxar.Timer;
 
+/// <summary>
+/// 服务内全局定时器实现，声明周期跟随服务的生命周期
+/// </summary>
 public class TimerActorSingleton : ActorSingleton<TimerActorSingleton>, ITimerObject
 {
     private const bool DELAY_REMOVE_TIMER = true;
@@ -30,53 +33,66 @@ public class TimerActorSingleton : ActorSingleton<TimerActorSingleton>, ITimerOb
     private TimerBase timer = new(DELAY_REMOVE_TIMER, PER_REMOVE_TIMER_COUNT);
 
 
+
+    /// <inheritdoc/>
     public long TimerCall(long milliSecond, Action action)
     {
         return timer.TimerCall(milliSecond, action);
     }
 
+
+    /// <inheritdoc/>
     public long TimerCall<T>(long milliSecond, Action<T> action, T args)
     {
         return timer!.TimerCall(milliSecond, action, args);
 
     }
 
+
+    /// <inheritdoc/>
     public long IntervalTimerCall(long milliSecond, Action action)
     {
         return timer!.IntervalTimerCall(milliSecond, action);
     }
 
+
+    /// <inheritdoc/>
     public long IntervalTimerCall<T>(long milliSecond, Action<T> action, T args)
     {
         return timer!.IntervalTimerCall(milliSecond, action, args);
 
     }
 
+
+    /// <inheritdoc/>
     public async ZFTask Delay(long milliSecond)
     {
         await timer!.Delay(milliSecond);
     }
 
+
+    /// <inheritdoc/>
     public void CancelTimer(long id)
     {
         timer!.CancelTimer(id);
     }
 
+
+    /// <inheritdoc/>
     public void CancelAllTimer()
     {
         timer!.CancelAllTimer();
     }
 
+
+    /// <inheritdoc/>
     public bool HasTimer(long id)
     {
         return timer!.HasTimer(id);
     }
 
-    public void DisposeTimerResources()
-    {
 
-    }
-
+    /// <inheritdoc/>
     public override void Dispose()
     {
         this.timer.Dispose();

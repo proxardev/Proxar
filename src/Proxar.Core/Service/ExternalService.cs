@@ -19,19 +19,24 @@
 using Proxar.ServiceCore.Interfaces;
 namespace Proxar.ServiceCore;
 
-public class ExternalService
+/// <summary>
+/// 提供外部服务代理创建的静态工厂类。
+/// </summary>
+public static class ExternalService
 {
-
-    public static T GetExternalServiceProxy<T>(long serviceId)
-        where T : class, IExternalProxy
+    /// <summary>
+    /// 获取外部服务代理（使用默认消息发送器）。
+    /// </summary>
+    public static T GetExternalServiceProxy<T>(long serviceId) where T : class, IExternalProxy
     {
         return (T.Create(serviceId) as T)!;
     }
 
-    public static T GetExternalServiceProxy<T>(long serviceId, IMessageInvoker messageInvoker)
-        where T : class, IExternalProxy
+    /// <summary>
+    /// 获取外部服务代理（使用自定义消息发送器）。
+    /// </summary>
+    public static T GetExternalServiceProxy<T>(long serviceId, IMessageInvoker messageInvoker) where T : class, IExternalProxy
     {
         return (T.Create(serviceId, messageInvoker) as T)!;
     }
-
 }

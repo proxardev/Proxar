@@ -21,40 +21,59 @@ using Proxar.Network;
 using System.Buffers;
 namespace Proxar.ServiceCore.Message;
 
-
+/// <summary>
+/// 提供消息负载序列化/反序列化能力的抽象基类，同时实现了 <see cref="IBufferWriter{Byte}"/> 和 <see cref="INetMessage"/>，
+/// 支持将消息参数直接写入内存缓冲区，适用于网络传输和零拷贝场景。
+/// </summary>
 public abstract class PayloadServiceMessage : AbstractServiceMessage, IBufferWriter<byte>, INetMessage
 {
+    /// <summary>
+    /// 消息负载的内存所有者，用于持有序列化后的字节数据。
+    /// </summary>
     protected IMemoryOwner<byte>? localMemoryOwner = null;
 
+    /// <summary>
+    /// 已写入缓冲区的字节数。
+    /// </summary>
     private int writtenCount = 0;
 
-    protected bool isSerializeArgs { get; set; }
+    /// <summary>
+    /// 指示消息的参数是否已被序列化（标记为 true 后，可避免重复序列化）。
+    /// </summary>
+    protected bool isSerializeArgs { get; private set; }
 
-
+    /// <summary>
+    /// 初始化 <see cref="PayloadServiceMessage"/> 类的新实例。
+    /// </summary>
     public PayloadServiceMessage()
     {
-
     }
 
+    /// <summary>
+    /// 初始化 <see cref="PayloadServiceMessage"/> 类的新实例，并指定外部提供的内存和已写入的大小。
+    /// </summary>
+    /// <param name="LocalMemoryOwner">预先分配的内存所有者。</param>
+    /// <param name="size">已写入的数据大小。</param>
     public PayloadServiceMessage(IMemoryOwner<byte> LocalMemoryOwner, int size)
     {
         this.localMemoryOwner = LocalMemoryOwner;
         this.writtenCount = size;
     }
 
-
+    /// <summary>
+    /// 标记消息的参数已被序列化。之后调用 <see cref="GetPayloadReadOnlyMemory"/> 将直接返回缓存的数据，避免重复序列化。
+    /// </summary>
     public void SetIsSerializeArgs()
     {
         isSerializeArgs = true;
     }
 
-
-    public bool ValidIsSerializeArgs()
-    {
-        return isSerializeArgs;
-    }
-
-    public int CalNeedMemorySize(int sizeHint)
+    /// <summary>
+    /// 计算扩展缓冲区所需的最小容量。
+    /// </summary>
+    /// <param name="sizeHint">预计要写入的字节数。</param>
+    /// <returns>建议的新缓冲区大小。</returns>
+    private int CalNeedMemorySize(int sizeHint)
     {
         var nowSize = this.writtenCount + sizeHint;
         var need = Math.Max(nowSize, 1024);
@@ -65,6 +84,10 @@ public abstract class PayloadServiceMessage : AbstractServiceMessage, IBufferWri
         return need;
     }
 
+    /// <summary>
+    /// 重新分配内部内存，将现有数据复制到新的更大的缓冲区，并释放旧缓冲区。
+    /// </summary>
+    /// <param name="sizeHint">预计要写入的字节数。</param>
     private void ReAllocateMemory(int sizeHint)
     {
         var needSize = this.CalNeedMemorySize(sizeHint);
@@ -76,9 +99,10 @@ public abstract class PayloadServiceMessage : AbstractServiceMessage, IBufferWri
             oldMemoryOwner.Memory.CopyTo(newMemoryOwner.Memory);
             oldMemoryOwner.Dispose();
         }
-
     }
 
+
+    /// <inheritdoc/>
     public override void Dispose()
     {
         if (this.localMemoryOwner != null)
@@ -89,6 +113,8 @@ public abstract class PayloadServiceMessage : AbstractServiceMessage, IBufferWri
         }
     }
 
+
+    /// <inheritdoc/>
     public override MessagePackReader GetMessagePackReader()
     {
         if (this.localMemoryOwner == null)
@@ -99,11 +125,15 @@ public abstract class PayloadServiceMessage : AbstractServiceMessage, IBufferWri
         return reader;
     }
 
+
+    /// <inheritdoc/>
     public override IBufferWriter<byte> GetSerializeArgeWriter()
     {
         return this;
     }
 
+
+    /// <inheritdoc/>
     public void NetMessageSerialize(IBufferWriter<byte> writer)
     {
         var writer2 = new MessagePackWriter(writer);
@@ -125,6 +155,7 @@ public abstract class PayloadServiceMessage : AbstractServiceMessage, IBufferWri
         }
     }
 
+    /// <inheritdoc/>
     public override ReadOnlyMemory<byte> GetPayloadReadOnlyMemory()
     {
         if (!isSerializeArgs)
@@ -137,9 +168,10 @@ public abstract class PayloadServiceMessage : AbstractServiceMessage, IBufferWri
             return ReadOnlyMemory<byte>.Empty;
         }
         return localMemoryOwner!.Memory.Slice(0, writtenCount);
-
     }
 
+
+    /// <inheritdoc/>
     public ReadOnlyMemory<byte> NetMessageSerialize()
     {
         if (!isSerializeArgs)
@@ -149,16 +181,19 @@ public abstract class PayloadServiceMessage : AbstractServiceMessage, IBufferWri
         return localMemoryOwner!.Memory.Slice(0, writtenCount);
     }
 
+    /// <inheritdoc/>
     public Span<byte> GetSpan(int sizeHint = 0)
     {
         return this.GetMemory(sizeHint).Span;
     }
 
+    /// <inheritdoc/>
     public void Advance(int count)
     {
         this.writtenCount += count;
     }
 
+    /// <inheritdoc/>
     public Memory<byte> GetMemory(int sizeHint = 0)
     {
         if (this.localMemoryOwner == null)
@@ -173,6 +208,8 @@ public abstract class PayloadServiceMessage : AbstractServiceMessage, IBufferWri
         return this.localMemoryOwner.Memory.Slice(this.writtenCount);
     }
 
+
+    /// <inheritdoc/>
     public override T ReadHead<T>()
     {
         if (this.headerData is T t)
@@ -182,11 +219,14 @@ public abstract class PayloadServiceMessage : AbstractServiceMessage, IBufferWri
         throw new InvalidOperationException();
     }
 
+
+    /// <inheritdoc/>
     public virtual void NetMessageDeserialize()
     {
-
     }
 
+
+    /// <inheritdoc/>
     public void NetMessageHandle()
     {
         throw new NotImplementedException();

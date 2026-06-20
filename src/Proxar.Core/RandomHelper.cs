@@ -19,7 +19,7 @@
 namespace Proxar.Utilities;
 
 
-public static class RandomHelper
+internal static class RandomHelper
 {
 
     public static int Random(int range)

@@ -17,10 +17,13 @@
 
 
 namespace Proxar.IdGenerator.SnowflakeId;
-
 /// <summary>
-/// 雪花算法基础信息实现类
+/// <see cref="ISnowflakeInfo"/> 的标准实现，用于描述雪花算法的位宽分配、时间单位和基准时间戳。
 /// </summary>
+/// <remarks>
+/// 在构造时，会通过 <see cref="ISnowflakeInfo.Validate"/> 接口默认实现校验配置的合法性，
+/// 确保各部分位宽之和不超过63位，且各部分位宽均为正数。
+/// </remarks>
 public class SnowflakeInfo : ISnowflakeInfo
 {
     private readonly int _timestampBits;
@@ -30,13 +33,18 @@ public class SnowflakeInfo : ISnowflakeInfo
     private readonly long _baseTimestamp;
 
     /// <summary>
-    /// 构造雪花算法基础信息
+    /// 使用指定的位宽、时间单位和基准时间戳初始化 <see cref="SnowflakeInfo"/> 的新实例。
     /// </summary>
-    /// <param name="timestampBits">时间戳位宽</param>
-    /// <param name="workerIdBits">机器ID位宽</param>
-    /// <param name="sequenceBits">序列号位宽</param>
-    /// <param name="timeUnit">时间单位</param>
-    /// <param name="baseTimestamp">基础时间戳 UTC时间</param>
+    /// <param name="timestampBits">分配给时间戳部分的位宽。</param>
+    /// <param name="workerIdBits">分配给工作节点 ID 部分的位宽。</param>
+    /// <param name="sequenceBits">分配给序列号部分的位宽。</param>
+    /// <param name="timeUnit">时间戳的时间单位（秒或毫秒）。</param>
+    /// <param name="baseTimestamp">
+    /// 基准 UTC 时间戳值，用于计算相对时间偏移量。
+    /// 通常设置为系统上线日期（如 <c>new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero).ToUnixTimeMilliseconds()</c>）。
+    /// </param>
+    /// <exception cref="ArgumentOutOfRangeException">任一位宽参数小于或等于零。</exception>
+    /// <exception cref="ArgumentException">总位宽大于或等于64。</exception>
     public SnowflakeInfo(
         int timestampBits,
         int workerIdBits,
@@ -55,10 +63,21 @@ public class SnowflakeInfo : ISnowflakeInfo
     }
 
     #region ISnowflakeInfo 接口实现（仅实现无默认值的成员）
+
+    /// <inheritdoc/>
     public int TimestampBits => _timestampBits;
+
+    /// <inheritdoc/>
     public int WorkerIdBits => _workerIdBits;
+
+    /// <inheritdoc/>
     public int SequenceBits => _sequenceBits;
+
+    /// <inheritdoc/>
     public TimeUnit TimeUnit => _timeUnit;
+
+    /// <inheritdoc/>
     public long BaseTimestamp => _baseTimestamp;
+
     #endregion
 }

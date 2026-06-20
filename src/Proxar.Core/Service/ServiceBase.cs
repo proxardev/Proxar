@@ -16,15 +16,19 @@
  */
 
 
-using Proxar.AppHost;
 using Proxar.AppHost.Interfaces;
-using Proxar.IdGenerator;
+using Proxar.IdGenerator.Interfaces;
+using Proxar.IdGenerator.SnowflakeId;
 using Proxar.ServiceCore.Interfaces;
 using Proxar.ServiceSynchronizationContext;
 using Proxar.Threading;
 
 namespace Proxar.ServiceCore;
 
+/// <summary>
+/// 所有服务的抽象基类，提供消息队列、服务标识、状态管理等核心能力。
+/// 每个服务都是一个独立的 Actor，拥有自己的消息队列和同步上下文，确保业务逻辑在单线程上执行。
+/// </summary>
 public abstract partial class ServiceBase
 {
     private long serviceId;
@@ -33,38 +37,59 @@ public abstract partial class ServiceBase
     private ActorSynchronizationContext actorSynchronizationContext;
 
     private bool inGlobalQueue = false;
+
     private SpinLockScope msgSpinLock { get; } = new SpinLockScope();
-    //private IIdGenerator<long> msgSeqGenerator { get; set; } = new Int64IdGenerator() { InitValue = 1 };
-    //private IIdGenerator<long> msgSeqGenerator { get; set; } = SnowflakeIdHelper.CreateSnowflakeIdGenerator();
-    private IIdGenerator<long> msgSeqGenerator { get; set; } = Game.Instance.IdGenerator2;
+
+    private IIdGenerator<long> msgSeqGenerator { get; set; } = SnowflakeIdHelper.CreateSnowflakeIdGenerator();
+
 
     private ServiceStatue serviceStatue = ServiceStatue.None;
 
+    /// <summary>
+    /// 获取此服务所属的服务组。
+    /// </summary>
     public IServiceGroup ServiceGroup { get; init; }
 
-
+    /// <summary>
+    /// 初始化 <see cref="ServiceBase"/> 类的新实例。
+    /// </summary>
     public ServiceBase()
     {
         actorSynchronizationContext = new ActorSynchronizationContext(this);
         ServiceGroup = ActorThreadScope.ServiceGroup;
     }
 
+    /// <summary>
+    /// 生成一个新的消息序列号（MsgSeq），用于请求-响应匹配。
+    /// </summary>
+    /// <returns>一个新的唯一消息序列号。</returns>
     protected internal long NewMessageSeq()
     {
         return msgSeqGenerator.NewId();
     }
 
-
-    public void SetServiceId(long serviceId)
+    /// <summary>
+    /// 设置此服务的唯一标识符。
+    /// </summary>
+    /// <param name="serviceId">服务的唯一标识符。</param>
+    internal void SetServiceId(long serviceId)
     {
         this.serviceId = serviceId;
     }
 
+    /// <summary>
+    /// 获取此服务的唯一标识符。
+    /// </summary>
+    /// <returns>服务的唯一标识符。</returns>
     public long GetServiceId()
     {
         return this.serviceId;
     }
 
+    /// <summary>
+    /// 将消息推送到此服务的消息队列中，由服务工作线程异步处理。
+    /// </summary>
+    /// <param name="message">要入队的服务消息。</param>
     public void PushMessage(IServiceMessage message)
     {
         this.msgSpinLock.Execute(this.PushMessage2, message);
@@ -150,11 +175,20 @@ public abstract partial class ServiceBase
         this.serviceStatue = ServiceStatue.Close;
     }
 
+    /// <summary>
+    /// 获取此服务的当前状态。
+    /// </summary>
+    /// <returns>一个 <see cref="ServiceStatue"/> 枚举值。</returns>
     public ServiceStatue GetServiceStatue()
     {
         return this.serviceStatue;
     }
 
+    /// <summary>
+    /// 检查此服务是否处于指定状态。
+    /// </summary>
+    /// <param name="serviceStatue">要检查的状态。</param>
+    /// <returns>如果服务处于指定状态则返回 <c>true</c>，否则返回 <c>false</c>。</returns>
     public bool IsServiceStatue(ServiceStatue serviceStatue)
     {
         return this.serviceStatue == serviceStatue;

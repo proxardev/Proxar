@@ -16,6 +16,8 @@
  */
 
 
+using Proxar.Network.Interfaces;
+
 namespace Proxar.Network;
 
 

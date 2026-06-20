@@ -25,27 +25,42 @@ using Proxar.Utilities;
 namespace Proxar.CachePool;
 
 
-public static class ActorObjectPoolConfig
+internal static class ActorObjectPoolConfig
 {
     // 全局唯一的配置委托
     public static Action? CustomInitialize { get; set; }
 }
 
-
+/// <summary>
+/// 基于 <see cref="ActorSingleton{TSelf}"/> 的泛型对象池，为实现了 <see cref="IPoolable{T}"/> 的类型 <typeparamref name="T"/>
+/// 提供租用（Rent）和归还（Return）管理。
+/// 池的默认容量为 <see cref="DefaultPoolSize"/>，并通过定时检查释放过期对象。
+/// </summary>
+/// <typeparam name="T">池中存储的对象类型，必须实现 <see cref="IPoolable{T}"/> 并具有无参数构造函数。</typeparam>
 public class ActorObjectPoolSingleton<T> :
     ActorSingleton<ActorObjectPoolSingleton<T>>,
     ISingletonInitializer, IObjectCachePool
     where T : notnull, IPoolable<T>, new()
-
 {
+    /// <summary>
+    /// 池的默认最大容量。
+    /// </summary>
     public const int DefaultPoolSize = 10_000;
+
     private Stack<T> stack;
 
+    /// <summary>
+    /// 初始化池实例，内部栈初始容量为 10。
+    /// </summary>
     public ActorObjectPoolSingleton()
     {
         stack = new Stack<T>(10);
     }
 
+    /// <summary>
+    /// 从池中租用一个对象。如果池为空，则创建一个新实例；否则从栈中弹出并调用 <see cref="IPoolable{T}.OnRented"/> 进行重置。
+    /// </summary>
+    /// <returns>租用到的 <typeparamref name="T"/> 实例。</returns>
     public T Rent()
     {
         if (stack.Count == 0)
@@ -57,6 +72,11 @@ public class ActorObjectPoolSingleton<T> :
         return obj;
     }
 
+    /// <summary>
+    /// 将对象归还到池中。若池已满（达到 <see cref="DefaultPoolSize"/>）、对象已被标记为丢弃（<see cref="IPoolable{T}.IsDiscarded"/> 为 <c>true</c>），
+    /// 若对象实现了 <see cref="IResettablePooled"/>，将先调用 <see cref="IResettablePooled.Reset"/> 重置状态，然后放回池中。
+    /// </summary>
+    /// <param name="obj">要归还的对象。</param>
     public void Return(T obj)
     {
         if (stack.Count >= DefaultPoolSize)
@@ -76,6 +96,10 @@ public class ActorObjectPoolSingleton<T> :
         stack.Push(obj);
     }
 
+    /// <summary>
+    /// 检查并释放池中已过期的对象。过期时间由 <see cref="IPoolable{T}.PoolExpireAtTime"/> 与当前秒级时间戳比较决定。
+    /// 该方法通常由定时器周期性调用，以控制池的规模。
+    /// </summary>
     public void CheckRelease()
     {
         var count = stack.Count;
@@ -105,17 +129,19 @@ public class ActorObjectPoolSingleton<T> :
         stack = new Stack<T>(list2);
     }
 
+    /// <summary>
+    /// 初始化池实例，将其注册到 <see cref="ActorObjectPoolManager"/> 以便统一管理。
+    /// </summary>
     public void Initialize()
     {
         if (ActorObjectPoolConfig.CustomInitialize != null)
         {
             ActorObjectPoolConfig.CustomInitialize.Invoke();
-            return;
         }
-        ActorObjectPoolManager.Current
-            .AddPool(this);
+        ActorObjectPoolManager.Current.AddPool(this);
     }
 
+    /// <inheritdoc/>
     public override void Dispose()
     {
     }

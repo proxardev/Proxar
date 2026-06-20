@@ -16,9 +16,18 @@
  */
 
 
-namespace Proxar.Network;
+namespace Proxar.Network.Interfaces;
 
+/// <summary>
+/// 定义<see cref="IChannel"/>工厂接口，用于根据指定的 IP 地址和端口创建<see cref="IChannel"/>。
+/// </summary>
 public interface IChannelFactory
 {
+    /// <summary>
+    /// 异步创建并连接到指定终端的通道。
+    /// </summary>
+    /// <param name="ip">目标 IP 地址。</param>
+    /// <param name="port">目标端口。</param>
+    /// <returns>代表异步连接操作的任务，完成后返回 <see cref="IChannel"/> 实例。</returns>
     Task<IChannel> CreateChannel(string ip, int port);
 }

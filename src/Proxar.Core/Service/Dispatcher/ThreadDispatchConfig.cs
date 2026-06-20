@@ -18,7 +18,7 @@
 
 namespace Proxar.ServiceCore.Dispatch;
 
-public static class ThreadDispatchConfig
+internal static class ThreadDispatchConfig
 {
     public static int MaxMissServiceCnt = 1_000_000;
 }

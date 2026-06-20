@@ -20,7 +20,7 @@ using HWT;
 using Proxar.Core;
 namespace Proxar.Timer;
 
-public class TimerManager : Singleton<TimerManager>, ISingletonInitializer
+internal class TimerManager : Singleton<TimerManager>, ISingletonInitializer
 {
     private HashedWheelTimer hashedWheelTimer = null!;
 

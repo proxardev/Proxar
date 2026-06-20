@@ -94,27 +94,54 @@ using Proxar.Tasks;
         return (methods.Any(), code);
     }
 
-    public static string GenerateProxyConstructionMethod(ServiceInfo serviceInfo, ServiceProxyGenerationOptions serviceProxyGenerationOptions)
+    public static string GenerateProxyConstructionMethod(string proxyClassName, bool withBaseClass)
     {
-        if (serviceInfo.IsServiceBaseClas())
+        var baseClassConstructionStr = ":base(serviceId)";
+        var baseClassConstructionStr2 = ":base(serviceId, messageInvoker)";
+        if (!withBaseClass)
         {
-            return "";
+            baseClassConstructionStr = "";
+            baseClassConstructionStr2 = "";
         }
         var method = $@"
-    public {serviceInfo.GetProxyClassName(serviceProxyGenerationOptions.Prefix)}(long serviceId):base(serviceId)
+
+    /// <summary>
+    /// 使用指定的服务 ID 初始化 <see cref=""{proxyClassName}""/> 的新实例。
+    /// 消息发送器将使用 <see cref=""Service.MessageInvoker""/> 的默认实例。
+    /// </summary>
+    /// <remarks>
+    /// </remarks>
+    /// <param name=""serviceId"">目标服务的唯一标识符。</param>
+    public {proxyClassName}(long serviceId){baseClassConstructionStr}
     {{
     }}
 
-    public {serviceInfo.GetProxyClassName(serviceProxyGenerationOptions.Prefix)}(long serviceId, IMessageInvoker messageInvoker):base(serviceId, messageInvoker)
+    /// <summary>
+    /// 使用指定的服务 ID 和自定义 <see cref=""IMessageInvoker""/> 初始化 <see cref=""{proxyClassName}""/> 的新实例。
+    /// </summary>
+    /// <param name=""serviceId"">目标服务的唯一标识符。</param>
+    /// <param name=""messageInvoker"">用于发送消息的自定义调用器。</param>
+    public {proxyClassName}(long serviceId, IMessageInvoker messageInvoker){baseClassConstructionStr2}
     {{
     }}
 ";
         return method;
     }
 
+    public static string GenerateProxyConstructionMethod(ServiceInfo serviceInfo, ServiceProxyGenerationOptions serviceProxyGenerationOptions)
+    {
+        if (serviceInfo.IsServiceBaseClass())
+        {
+            return "";
+        }
+        var proxyClassName = serviceInfo.GetProxyClassName(serviceProxyGenerationOptions.Prefix);
+
+        return GenerateProxyConstructionMethod(proxyClassName, true);
+    }
+
     public static string GenerateInheritClassName(ServiceInfo serviceInfo, ServiceProxyGenerationOptions serviceProxyGenerationOptions)
     {
-        if (serviceInfo.IsServiceBaseClas())
+        if (serviceInfo.IsServiceBaseClass())
         {
             return "";
         }
@@ -125,7 +152,7 @@ using Proxar.Tasks;
 
     public static string GenerateProxyCreateMethod(ServiceInfo serviceInfo, ServiceProxyGenerationOptions serviceProxyGenerationOptions)
     {
-        if (serviceInfo.IsServiceBaseClas())
+        if (serviceInfo.IsServiceBaseClass())
         {
             return "";
         }
@@ -157,6 +184,13 @@ using Proxar.Tasks;
 
 
         var proxyInterfaceDeclaration = $@"
+/// <summary>
+/// <see cref=""{className}""/> 服务的协议接口，由源生成器自动生成。
+/// 包含该服务所有标记为 <see cref=""{ServiceInfo.ServiceMethodAttributeName}""/> 的协议方法。
+/// </summary>
+/// <remarks>
+/// 实现由代理类提供。
+/// </remarks>
 {accessibility} interface {interfaceName}: {serviceProxyGenerationOptions.BaseInterfaceName}
 {{
 {proxyInterfaceMethod}
@@ -196,6 +230,12 @@ using Proxar.Tasks;
 {accessibility} partial class {proxyClassName}  {inheritClassName}
 {{
 #pragma warning disable CS0108
+    /// <summary>
+    /// 服务代理的唯一标识符，用于在系统中区分不同的代理类。
+    /// </summary>
+    /// <remarks>
+    /// 在外部代理中有效，内部代理中，只是一个占位字段。
+    /// </remarks>
     public const  long ProxyId = {proxyOption.GetProxyId(serviceInfo)};
 #pragma warning restore CS0108
 
@@ -216,6 +256,24 @@ using Proxar.Tasks;
         return proxyIntfDeclaration;
     }
 
+    public static string GenerateSpacilProxyConstructionMethod(string proxyClassName, string accessibility)
+    {
+        var method = $@"
+
+    /// <summary>
+    /// 使用指定的服务 ID 初始化 <see cref=""{proxyClassName}""/> 的新实例。
+    /// </summary>
+    /// <remarks>
+    /// </remarks>
+    /// <param name=""serviceId"">目标服务的唯一标识符。</param>
+    {accessibility} {proxyClassName}(long serviceId)
+    {{
+        this.ServiceId = serviceId;
+    }}
+";
+        return method;
+    }
+
     public static string MakePartServiceProxy(ServiceInfo serviceInfo, ServiceProxyGenerationOptions serviceProxyGenerationOptions)
     {
         var className = serviceInfo.GetClassName();
@@ -228,7 +286,7 @@ using Proxar.Tasks;
         var inheritClassName = GenerateInheritClassName(serviceInfo, serviceProxyGenerationOptions);
 
         var baseClass = $"{serviceInfo.ServiceClassSymbol.BaseType.Name}Proxy,";
-        if (serviceInfo.IsServiceBaseClas())
+        if (serviceInfo.IsServiceBaseClass())
         {
             baseClass = "";
         }
@@ -258,19 +316,23 @@ using Proxar.Tasks;
         {
             var proxyMethod2 = string.Join("",
                 rawMethods.Select(x => MakeServiceDispathMethodProxy(className, x, false, false, MethodTypeDef.Raw)));
-
+            var rawStructName = $"{proxyClassName}_Raw";
             proxyMethodDeclaration += $@"
 #pragma warning disable CS0108
+    /// <summary>
+    /// 获取用于发送不序列化（Raw）消息的内部结构体。使用其调用方法，调用方式不经过序列化，直接传递原始字节。
+    /// </summary>
     public {proxyClassName}_Raw Raw => new(GetServiceId());
 #pragma warning restore CS0108
 
+    /// <summary>
+    /// 封装了不序列化（Raw）发送语义的内部结构体。所有通过此结构体调用的方法都将以原始字节方式发送。
+    /// </summary>
     {accessibility} struct {proxyClassName}_Raw
     {{
         private long ServiceId;
-        {accessibility} {proxyClassName}_Raw(long serviceId)
-        {{
-            this.ServiceId = serviceId;
-        }}
+{GenerateSpacilProxyConstructionMethod(rawStructName, accessibility)}
+
     {proxyMethod2}
     }}
 
@@ -281,18 +343,23 @@ using Proxar.Tasks;
             var proxyMethod2 = string.Join("",
                 queue0Methods.Select(x => MakeServiceDispathMethodProxy(className, x, false, false, MethodTypeDef.Queue0)));
 
+            var queue0StructName = $"{proxyClassName}_Queue0";
             proxyMethodDeclaration += $@"
 #pragma warning disable CS0108
+
+    /// <summary>
+    /// 获取用于向0号队列（优先队列）发送消息的内部结构体。使用其调用方法，消息将被放入优先队列。
+    /// </summary>
     public {proxyClassName}_Queue0 Queue0 => new(GetServiceId());
 #pragma warning restore CS0108
 
+    /// <summary>
+    /// 封装了向0号队列（优先队列）发送语义的内部结构体。所有通过此结构体调用的方法都会优先处理。
+    /// </summary>
     {accessibility} struct {proxyClassName}_Queue0
     {{
         private long ServiceId;
-        {accessibility} {proxyClassName}_Queue0(long serviceId)
-        {{
-            this.ServiceId = serviceId;
-        }}
+{GenerateSpacilProxyConstructionMethod(queue0StructName, accessibility)}
     {proxyMethod2}
     }}
 
@@ -303,18 +370,22 @@ using Proxar.Tasks;
             var proxyMethod2 = string.Join("",
                 queue0RawMethods.Select(x => MakeServiceDispathMethodProxy(className, x, false, false, MethodTypeDef.Queue0Raw)));
 
+            var queue0RawStructName = $"{proxyClassName}_Queue0Raw";
             proxyMethodDeclaration += $@"
 #pragma warning disable CS0108
+    /// <summary>
+    /// 获取用于向0号队列（优先队列）发送不序列化（Raw）消息的内部结构体。
+    /// </summary>
     public {proxyClassName}_Queue0Raw Queue0Raw => new(GetServiceId());
 #pragma warning restore CS0108
 
+    /// <summary>
+    /// 封装了向0号队列发送不序列化（Raw）消息语义的内部结构体。所有通过此结构体调用的方法都将以原始字节方式优先处理。
+    /// </summary>
     {accessibility} struct {proxyClassName}_Queue0Raw
     {{
         private long ServiceId;
-        {accessibility} {proxyClassName}_Queue0Raw(long serviceId)
-        {{
-            this.ServiceId = serviceId;
-        }}
+{GenerateSpacilProxyConstructionMethod(queue0RawStructName, accessibility)}
     {proxyMethod2}
     }}
 

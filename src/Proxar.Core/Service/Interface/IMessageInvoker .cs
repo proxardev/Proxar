@@ -18,10 +18,25 @@
 
 namespace Proxar.ServiceCore.Interfaces;
 
+/// <summary>
+/// 定义消息调用器，用于向目标服务发送消息。
+/// 通过不同的实现（如本地总线、网络传输）解耦消息发送方式，支持单元测试和透明扩展。
+/// </summary>
 public interface IMessageInvoker
 {
+    /// <summary>
+    /// 向指定服务发送消息。
+    /// </summary>
+    /// <param name="ProxyId">网关代理标识，用于路由外部消息；内部通信时可传 0。</param>
+    /// <param name="serviceId">目标服务的唯一标识符。</param>
+    /// <param name="serviceMessage">要发送的服务消息。</param>
     void Send(long ProxyId, long serviceId, IServiceMessage serviceMessage);
 
+    /// <summary>
+    /// 将消息直接投递到本地进程内的目标服务，不经过网络传输。
+    /// </summary>
+    /// <param name="ProxyId">网关代理标识，内部通信时可传 0。</param>
+    /// <param name="serviceId">目标服务的唯一标识符。</param>
+    /// <param name="serviceMessage">要发送的服务消息。</param>
     void SendLocal(long ProxyId, long serviceId, IServiceMessage serviceMessage);
-
 }

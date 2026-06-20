@@ -16,11 +16,22 @@
  */
 
 
-namespace Proxar.IdGenerator;
+using Proxar.Core.Extensions;
+
+namespace Proxar.ServiceCore.GateWay;
 
 
-
-public interface IIncrementer<T>
+internal class ExternalServiceMapping
 {
-    T Increment(ref T value);
+    private Dictionary<long, long> externalServices = new Dictionary<long, long>();
+
+    public void SetMapping(long type, long serviceId)
+    {
+        externalServices[type] = serviceId;
+    }
+
+    public long GetMapping(long type)
+    {
+        return externalServices.Get(type);
+    }
 }

@@ -19,7 +19,7 @@
 using Proxar.ServiceCore;
 namespace Proxar.Network;
 
-public static class ClusterBusStart
+internal static class ClusterBusStart
 {
     public static void Initialize()
     {

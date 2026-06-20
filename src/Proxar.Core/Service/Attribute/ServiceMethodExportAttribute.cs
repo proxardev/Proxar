@@ -19,6 +19,13 @@
 namespace Proxar.ServiceCore;
 
 
+/// <summary>
+/// 标记一个协议方法应被导出到外部代理（ExternalProxy）中，供客户端或其他外部系统调用。
+/// 此特性需与 <see cref="ServiceExportAttribute"/> 配合使用。
+/// </summary>
+/// <remarks>
+/// 带有此特性的方法会被源生成器自动生成到外部代理类中。
+/// </remarks>
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
 public sealed class ServiceMethodExportAttribute : Attribute
 {

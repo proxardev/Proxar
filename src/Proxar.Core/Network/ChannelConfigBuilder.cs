@@ -16,19 +16,34 @@
  */
 
 
+using Proxar.Network.Interfaces;
+
 namespace Proxar.Network;
 
+/// <summary>
+/// 用于构建网络通道配置的建造器，允许注入自定义的终结点解析器 <see cref="IEndpointResolver"/> 和通道工厂 <see cref="IChannelFactory"/>。
+/// </summary>
 public class ChannelConfigBuilder
 {
     internal IEndpointResolver? EndpointResolver;
     internal IChannelFactory? ChannelFactory;
 
+    /// <summary>
+    /// 设置自定义的 <see cref="IEndpointResolver"/>，用于根据工作节点 ID 解析 IP 和端口。
+    /// </summary>
+    /// <param name="resolver">要注入的终结点解析器。</param>
+    /// <returns>当前建造器实例，支持链式调用。</returns>
     public ChannelConfigBuilder UseEndpointResolver(IEndpointResolver resolver)
     {
         EndpointResolver = resolver;
         return this;
     }
 
+    /// <summary>
+    /// 设置自定义的 <see cref="IChannelFactory"/>，用于创建通信通道。
+    /// </summary>
+    /// <param name="factory">要注入的通道工厂。</param>
+    /// <returns>当前建造器实例，支持链式调用。</returns>
     public ChannelConfigBuilder UseChannelFactory(IChannelFactory factory)
     {
         ChannelFactory = factory;

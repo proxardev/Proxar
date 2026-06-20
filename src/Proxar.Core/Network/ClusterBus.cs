@@ -17,6 +17,7 @@
 
 
 using Proxar.Core.Extensions;
+using Proxar.Network.Interfaces;
 using Proxar.ServiceCore;
 using Proxar.Tasks;
 namespace Proxar.Network;

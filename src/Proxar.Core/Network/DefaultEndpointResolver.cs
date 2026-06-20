@@ -17,6 +17,7 @@
 
 
 using Proxar.AppHost;
+using Proxar.Network.Interfaces;
 using System.Text.Json;
 
 namespace Proxar.Network;
@@ -49,7 +50,7 @@ internal class DefaultEndpointResolver : IEndpointResolver
             keyValuePairs = ClusterConfigInfos;
             return true;
         }
-        string filePath = Path.Combine(Environment.CurrentDirectory, Game.Instance.AppOptions.ClusterConfigFile);
+        string filePath = Path.Combine(Environment.CurrentDirectory, ProxarHost.Instance.AppOptions.ClusterConfigFile);
         if (!File.Exists(filePath))
             throw new FileNotFoundException($"文件不存在: {filePath}");
 

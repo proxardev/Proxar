@@ -27,7 +27,7 @@ internal class ServiceRouter : IMessageInvoker
     public void Send(long ProxyId, long serviceId, IServiceMessage serviceMessage)
     {
         var workerId = ServiceRouterHelper.GetWorkerId(serviceId);
-        if (workerId == Game.Instance.AppOptions.WorkerId)
+        if (workerId == ProxarHost.Instance.AppOptions.WorkerId)
         {
             SendLocal(ProxyId, serviceId, serviceMessage);
             return;

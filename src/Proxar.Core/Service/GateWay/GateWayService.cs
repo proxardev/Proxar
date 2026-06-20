@@ -18,7 +18,7 @@
 
 using Proxar.Core.Extensions;
 using Proxar.Logging;
-using Proxar.Network;
+using Proxar.Network.Interfaces;
 using Proxar.ServiceCore.Interfaces;
 using Proxar.ServiceCore.Message;
 using System.Diagnostics;

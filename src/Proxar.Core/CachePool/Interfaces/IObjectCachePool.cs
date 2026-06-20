@@ -18,7 +18,13 @@
 
 namespace Proxar.CachePool.Interfaces;
 
+/// <summary>
+/// 定义对象缓存池的基本契约，提供定期释放过期对象的方法。
+/// </summary>
 public interface IObjectCachePool
 {
+    /// <summary>
+    /// 检查并释放池中已过期的对象。
+    /// </summary>
     public void CheckRelease();
 }

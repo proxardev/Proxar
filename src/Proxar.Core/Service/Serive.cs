@@ -25,6 +25,9 @@ namespace Proxar.ServiceCore;
 
 public static partial class Service
 {
+    /// <summary>
+    /// 获取当前服务组的默认消息调用器。
+    /// </summary>
     public static IMessageInvoker MessageInvoker => ActorThreadScope.ServiceGroup.Invoker;
 
     internal static IInternalMessageInvoker InternalMessageInvoker => ActorThreadScope.ServiceGroup.InternalInvoker;
@@ -85,7 +88,7 @@ public static partial class Service
         }
     }
 
-    public static void Send(long serviceId, int proto, Socket socket)
+    internal static void Send(long serviceId, int proto, Socket socket)
     {
         var msg = new MessageSocket(socket);
         msg.Init();

@@ -16,12 +16,23 @@
  */
 
 
+using Proxar.Network.Interfaces;
+
 namespace Proxar.Network;
 
+/// <summary>
+/// 全局通道配置，提供默认的终结点解析器 <see cref="IEndpointResolver"/> 和通道工厂 <see cref="IChannelFactory"/>。
+/// </summary>
 public static class ChannelConfig
 {
-
+    /// <summary>
+    /// 获取当前的终结点解析器。默认使用 <see cref="DefaultEndpointResolver"/>。
+    /// </summary>
     public static IEndpointResolver EndpointResolver { get; private set; } = new DefaultEndpointResolver();
+
+    /// <summary>
+    /// 获取当前的通道工厂。默认使用 <see cref="DefaultChannelFactory"/>。
+    /// </summary>
     public static IChannelFactory ChannelFactory { get; private set; } = new DefaultChannelFactory();
 
     internal static void SetEndpointResolver(IEndpointResolver resolver)
@@ -34,4 +45,3 @@ public static class ChannelConfig
         ChannelFactory = factory ?? throw new ArgumentNullException(nameof(factory));
     }
 }
-

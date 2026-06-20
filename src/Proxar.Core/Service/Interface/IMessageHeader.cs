@@ -19,7 +19,14 @@
 namespace Proxar.ServiceCore.Interfaces;
 
 
+/// <summary>
+/// 定义消息头的通用接口，提供对头部数据的只读访问。
+/// </summary>
 public interface IMessageHeader
 {
+    /// <summary>
+    /// 获取消息头数据的只读跨度。
+    /// </summary>
+    /// <returns>包含头部数据的 <see cref="ReadOnlySpan{Int64}"/>。</returns>
     public ReadOnlySpan<long> GetHeaderReadOnlySpan();
 }

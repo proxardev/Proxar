@@ -18,16 +18,34 @@
 
 namespace Proxar.CachePool.Interfaces;
 
-
+/// <summary>
+/// 定义对象池中可池化对象的核心行为，管理对象的租用、归还、丢弃以及过期时间。
+/// </summary>
+/// <typeparam name="T">对象的具体类型，通常是实现此接口的类自身。</typeparam>
 public interface IPoolable<T>
 {
+    /// <summary>
+    /// 获取或设置一个值，指示对象当前是否处于租用状态。
+    /// </summary>
     bool IsRented { get; set; }
 
+    /// <summary>
+    /// 获取或设置对象的过期时间戳，超过此时限的对象可能被池清理。
+    /// </summary>
     int PoolExpireAtTime { get; set; }
 
+    /// <summary>
+    /// 获取或设置一个值，指示对象是否已被丢弃，丢弃的对象将不会被回收。
+    /// </summary>
     bool IsDiscarded { get; set; }
 
+    /// <summary>
+    /// 将对象归还到其对应的对象池中，使其可被再次租用。
+    /// </summary>
     public void ReturnToPool();
 
+    /// <summary>
+    /// 当对象从对象池中被租用时调用，用于初始化或重置对象状态。
+    /// </summary>
     public void OnRented();
 }

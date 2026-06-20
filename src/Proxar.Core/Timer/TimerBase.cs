@@ -16,13 +16,17 @@
  */
 
 
-using Proxar.IdGenerator;
+using Proxar.IdGenerator.Interfaces;
 using Proxar.ServiceSynchronizationContext;
 using Proxar.Tasks;
 using Proxar.Timer.Interfaces;
 using Proxar.Utilities;
 namespace Proxar.Timer;
 
+
+/// <remarks>
+/// 提供基于 <see cref="ITimerObject"/> 的定时器管理基类，支持延迟移除和批量清理。
+/// </remarks>
 public class TimerBase : BaseObject, ITimerObject
 {
     private IIdGenerator<long> timerIdGenerator;
@@ -33,12 +37,20 @@ public class TimerBase : BaseObject, ITimerObject
     private bool registerDelayRemoveAction = false;
     private int delayRemovePerCallRemoveCount = 5;
 
+    /// <summary>
+    /// 初始化 <see cref="TimerBase"/> 类的新实例，使用默认配置。
+    /// </summary>
     public TimerBase()
         : base()
     {
         this.timerIdGenerator = GetTimerIdGenerator();
     }
 
+    /// <summary>
+    /// 初始化 <see cref="TimerBase"/> 类的新实例，并配置延迟移除策略。
+    /// </summary>
+    /// <param name="delayRemoveOnCancel">是否在取消定时器时延迟移除（批量清理）。</param>
+    /// <param name="delayRemovePerCallRemoveCount">每次调用移除操作时批量清理的最大数量。</param>
     public TimerBase(bool delayRemoveOnCancel,
         int delayRemovePerCallRemoveCount)
         : this()
@@ -48,7 +60,7 @@ public class TimerBase : BaseObject, ITimerObject
         this.delayRemoveOnCancel = delayRemoveOnCancel;
     }
 
-    private static Int64IdGenerator GetTimerIdGenerator()
+    private static IIdGenerator<long> GetTimerIdGenerator()
     {
         var synchronizationContext = SynchronizationContextHelper
             .GetSynchronization<ActorSynchronizationContext>()!;
@@ -71,11 +83,13 @@ public class TimerBase : BaseObject, ITimerObject
         return id;
     }
 
+    /// <inheritdoc/>
     public long TimerCall(long milliSecond, Action action)
     {
         return this.TimerCall(milliSecond, action, true);
     }
 
+    /// <inheritdoc/>
     public long TimerCall<T>(long milliSecond, Action<T> action, T args)
     {
         var action2 = () =>
@@ -86,6 +100,7 @@ public class TimerBase : BaseObject, ITimerObject
 
     }
 
+    /// <inheritdoc/>
     public long IntervalTimerCall(long milliSecond, Action action)
     {
         long id = 0;
@@ -106,6 +121,7 @@ public class TimerBase : BaseObject, ITimerObject
         return id;
     }
 
+    /// <inheritdoc/>
     public long IntervalTimerCall<T>(long milliSecond, Action<T> action, T args)
     {
         var action2 = () =>
@@ -115,6 +131,7 @@ public class TimerBase : BaseObject, ITimerObject
         return this.IntervalTimerCall(milliSecond, action2);
     }
 
+    /// <inheritdoc/>
     public async ZFTask Delay(long milliSecond)
     {
         var ts = ZFTask.CreateZFTask();
@@ -140,6 +157,8 @@ public class TimerBase : BaseObject, ITimerObject
         this.timeoutDict.Remove(id);
     }
 
+
+    /// <inheritdoc/>
     public void CancelTimer(long id)
     {
         if (!this.timerDict.ContainsKey(id))
@@ -162,6 +181,8 @@ public class TimerBase : BaseObject, ITimerObject
         this.RegisterDelayRemove();
     }
 
+
+    /// <inheritdoc/>
     public void CancelAllTimer()
     {
         var timerInfo = this.timerDict;
@@ -199,9 +220,10 @@ public class TimerBase : BaseObject, ITimerObject
         this.RegisterDelayRemove();
     }
 
-    public override void DisposeResources()
+    /// <inheritdoc/>
+    protected override void DisposeResources()
     {
-        this.DisposeTimerResources();
+        this.CancelAllTimer();
     }
 
     private void RemoveAllTimer()
@@ -259,11 +281,7 @@ public class TimerBase : BaseObject, ITimerObject
         this.GetSynchronization()?.Post(action);
     }
 
-    public void DisposeTimerResources()
-    {
-        this.RemoveAllTimer();
-    }
-
+    /// <inheritdoc/>
     public bool HasTimer(long id)
     {
         if (!this.timerDict.ContainsKey(id))

@@ -20,9 +20,13 @@ using Proxar.Core;
 namespace Proxar.IdGenerator;
 
 
+/// <summary>
+/// 提供对 <see cref="int"/> 类型值的递增操作，通常作为 ID 生成器的增量组件。
+/// 通过 <see cref="Singleton{TIncrementer}"/> 保证全局唯一实例。
+/// </summary>
 public sealed class Int32Incrementer : Singleton<Int32Incrementer>, IIncrementer<int>
 {
-    //[MethodImpl(MethodImplOptions.AggressiveInlining)]
+    /// <inheritdoc/>
     public int Increment(ref int value)
     {
         return value++;

@@ -18,7 +18,7 @@
 
 namespace Proxar.ServiceCore.Message;
 
-public static class NetMessageType
+internal static class NetMessageType
 {
     public static byte ServiceMessage = 1;
 

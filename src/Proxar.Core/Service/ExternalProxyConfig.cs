@@ -19,7 +19,7 @@
 using Proxar.ServiceCore;
 using Proxar.ServiceCore.Interfaces;
 
-public static class ExternalProxyConfig
+internal static class ExternalProxyConfig
 {
     public static IMessageInvoker MessageInvoker => ActorThreadScope.ServiceGroup.ExternalProxyInvoker;
 }
