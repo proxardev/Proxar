@@ -17,6 +17,7 @@
 
 
 using Proxar.Tasks.Interfaces;
+using Proxar.Utilities;
 using System.Runtime.CompilerServices;
 
 namespace Proxar.Tasks;
@@ -71,7 +72,7 @@ public sealed class ZFTask : ZFTaskBase<ZFTask>, ICriticalNotifyCompletion, ITas
 
     private static void NextFrame(ZFTask task)
     {
-        ArgumentNullException.ThrowIfNull(NextFrameHander);
+        ThrowHelper.ThrowIfNull(NextFrameHander);
         NextFrameHander.Invoke(task.SetResult);
     }
 

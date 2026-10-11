@@ -56,7 +56,6 @@ public class GateWay : IGateMessageInvoker
     /// <inheritdoc/>
     public void ReceiveChannelData(IChannel channel, byte[] data)
     {
-        var x = ActorThreadScope.ServiceGroup;
         gateWayServiceProxy.Value.Raw.ReceiveChannelData(channel, data);
     }
 
@@ -73,8 +72,35 @@ public class GateWay : IGateMessageInvoker
     }
 
     /// <inheritdoc/>
-    public void SetTargetServiceMapping(long targetId, long type, long serviceId)
+    public void SetTargetServiceMapping(long targetId, long proxyId, long serviceId)
     {
-        gateWayServiceProxy.Value.SetTargetServiceMapping(targetId, type, serviceId);
+        gateWayServiceProxy.Value.SetTargetServiceMapping(targetId, proxyId, serviceId);
+    }
+
+    /// <inheritdoc/>
+    public void RemoveTargetServiceMapping(long targetId)
+    {
+        gateWayServiceProxy.Value.RemoveTargetServiceMapping(targetId);
+    }
+
+    /// <inheritdoc/>
+    public void RemoveTargetServiceMapping(long targetId, long proxyId)
+    {
+        gateWayServiceProxy.Value.RemoveTargetServiceProxyMapping(targetId, proxyId);
+    }
+
+    public void ReceiveData(long channelId, byte[] data)
+    {
+        gateWayServiceProxy.Value.Raw.ReceiveData1(channelId, data);
+    }
+
+    public void ReceiveData(IChannel channel, IPayloadBuffer payloadBuffer)
+    {
+        gateWayServiceProxy.Value.Raw.ReceiveChannelData2(channel, payloadBuffer);
+    }
+
+    public void ReceiveData(long channelId, IPayloadBuffer payloadBuffer)
+    {
+        gateWayServiceProxy.Value.Raw.ReceiveData2(channelId, payloadBuffer);
     }
 }

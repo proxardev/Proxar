@@ -62,6 +62,12 @@ public interface IServiceGroup
     string Flag { get; set; }
 
     /// <summary>
+    /// 获取或设置此服务组运行所在的工作节点 ID。
+    /// 该 ID 用于生成服务的雪花 ID，以支持跨节点路由。
+    /// </summary>
+    long WorkerId { get; set; }
+
+    /// <summary>
     /// 注册服务组启动时执行的回调。所有注册的回调将在该组的每个服务启动后依次执行。
     /// </summary>
     /// <param name="func">启动回调，参数为当前服务 ID，返回一个 <see cref="ZFTask"/>。</param>
@@ -78,13 +84,14 @@ public interface IServiceGroup
     /// 操作完成后自动恢复原有的服务组上下文，即使发生异常也会恢复。
     /// </summary>
     /// <param name="action">要执行的操作。</param>
-    void ServiceGroupExecute(Action action)
+    IServiceGroup ServiceGroupExecute(Action action)
     {
         var group = ActorThreadScope.ServiceGroup;
         try
         {
             ActorThreadScope.ThreadServiceGroup = this;
             action.Invoke();
+            return this;
         }
         catch (Exception)
         {

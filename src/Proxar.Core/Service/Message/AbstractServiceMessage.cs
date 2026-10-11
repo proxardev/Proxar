@@ -53,9 +53,10 @@ public abstract class AbstractServiceMessage : IServiceMessage
     protected int Proto = 0;
 
     /// <summary>
-    /// 消息头部原始数据（来自 <see cref="IMessageHeader"/>）。
+    /// 消息扩展头（<see cref="IMessageHeader"/>，默认实现为 <see cref="MessageHeader"/>）。
+    /// 懒创建：仅当首次访问时才分配默认实例。
     /// </summary>
-    protected long headerData = 0;
+    private IMessageHeader header = null!;
 
     /// <summary>
     /// 设置消息头字段。
@@ -74,27 +75,13 @@ public abstract class AbstractServiceMessage : IServiceMessage
         this.Proto = proto;
         if (header != null)
         {
-            this.headerData = header.GetHeaderReadOnlySpan()[0];
+            this.header = header;
+        }
+        else
+        {
+            this.header = new MessageHeader();
         }
     }
-
-    ///// <summary>
-    ///// 获取消息的网络类型标识。
-    ///// </summary>
-    ///// <returns>表示消息类型的字节值。</returns>
-    //public byte GetNetMessageType()
-    //{
-    //    return this.messageType;
-    //}
-
-    ///// <summary>
-    ///// 设置消息的网络类型标识。
-    ///// </summary>
-    ///// <param name="netMessageType">消息类型。</param>
-    //public void SetNetMessageType(byte netMessageType)
-    //{
-    //    this.messageType = netMessageType;
-    //}
 
     /// <summary>
     /// 设置目标服务 ID。
@@ -255,15 +242,24 @@ public abstract class AbstractServiceMessage : IServiceMessage
         return MessagePackSerializer.Deserialize<(T1, T2, T3, T4, T5, T6, T7, T8, T9)>(ref reader);
     }
 
-    /// <inheritdoc/>
-    public virtual T ReadHead<T>()
+    public virtual T DeserializeArgsNew<T>(MessagePackReader reader)
     {
+        var options = MessagePackSerializerOptions.Standard;
+        var formatter = options.Resolver.GetFormatterWithVerify<T>();
+        var value = formatter.Deserialize(ref reader, options);
+        return value;
+    }
+
+    public virtual T1 DEEEEE<T1>()
+    {
+        var options = MessagePackSerializerOptions.Standard;
         var reader = GetMessagePackReader();
-        var size = reader.Consumed;
-        var result = MessagePackSerializer.Deserialize<T>(ref reader);
-        var consumed = reader.Consumed - size;
-        this.OnConsumed(consumed);
-        return result;
+        var p = reader.Consumed;
+        var formatter1 = options.Resolver.GetFormatterWithVerify<T1>();
+        var value1 = formatter1.Deserialize(ref reader, options);
+        var newp = reader.Consumed;
+        this.OnConsumed(newp - p);
+        return value1;
     }
 
     /// <inheritdoc/>
@@ -275,5 +271,10 @@ public abstract class AbstractServiceMessage : IServiceMessage
     /// <param name="consumed">已读取的字节数。</param>
     protected virtual void OnConsumed(long consumed)
     {
+    }
+
+    public IMessageHeader GetHeader()
+    {
+        return this.header;
     }
 }

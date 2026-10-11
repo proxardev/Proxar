@@ -16,9 +16,11 @@
  */
 
 
+using Proxar.Abstractions.Service.Interfaces;
 using Proxar.AppHost.Interfaces;
 using Proxar.IdGenerator.Interfaces;
 using Proxar.IdGenerator.SnowflakeId;
+using Proxar.ServiceCore.Dispatch;
 using Proxar.ServiceCore.Interfaces;
 using Proxar.ServiceSynchronizationContext;
 using Proxar.Threading;
@@ -29,7 +31,7 @@ namespace Proxar.ServiceCore;
 /// 所有服务的抽象基类，提供消息队列、服务标识、状态管理等核心能力。
 /// 每个服务都是一个独立的 Actor，拥有自己的消息队列和同步上下文，确保业务逻辑在单线程上执行。
 /// </summary>
-public abstract partial class ServiceBase
+public abstract partial class ServiceBase : IService
 {
     private long serviceId;
     private Queue<IServiceMessage>? queue = new Queue<IServiceMessage>(100);
@@ -92,42 +94,55 @@ public abstract partial class ServiceBase
     /// <param name="message">要入队的服务消息。</param>
     public void PushMessage(IServiceMessage message)
     {
-        this.msgSpinLock.Execute(this.PushMessage2, message);
+        var call = this.msgSpinLock.Execute(this.PushMessage2, message);
+        DispatchStats.OnMsgPush(); // [STATS]
+        if (call)
+        {
+            DispatchStats.OnSchedulePush(); // [STATS]
+            WorkerSignal.OnServiceReady();  // [FIX-A] 原来是无条件 Semaphore.Release()
+        }
     }
 
-    private void PushMessage2(IServiceMessage message)
+    private bool PushMessage2(IServiceMessage message)
     {
         if (this.queue == null)
         {
-            return;
+            return false;
         }
         this.queue.Enqueue(message);
-        this.CheckPushGlobalQueue();
+        return this.CheckPushGlobalQueue();
     }
 
     internal void PushQueue0Message(IServiceMessage message)
     {
-        this.msgSpinLock.Execute(this.PushQueue0Message2, message);
+        var call = this.msgSpinLock.Execute(this.PushQueue0Message2, message);
+        DispatchStats.OnMsgPush(); // [STATS]
+        if (call)
+        {
+            DispatchStats.OnSchedulePush(); // [STATS]
+            WorkerSignal.OnServiceReady();  // [FIX-A] 原来是无条件 Semaphore.Release()
+        }
     }
 
-    private void PushQueue0Message2(IServiceMessage message)
+    private bool PushQueue0Message2(IServiceMessage message)
     {
         if (this.queue0 == null)
         {
-            return;
+            return false;
         }
         this.queue0.Enqueue(message);
-        this.CheckPushGlobalQueue();
+        return this.CheckPushGlobalQueue();
     }
 
-    private void CheckPushGlobalQueue()
+    private bool CheckPushGlobalQueue()
     {
         if (inGlobalQueue)
         {
-            return;
+            return false;
         }
         inGlobalQueue = true;
         ServiceManager.Instance.PushGlobalQueue(serviceId);
+        return true;
     }
 
     internal void ClearAllMessage()

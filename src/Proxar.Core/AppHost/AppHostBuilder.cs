@@ -39,10 +39,11 @@ public partial class AppHostBuilder : Singleton<AppHostBuilder>
     public IServiceGroup DefaultServiceGroup { get; private set; } = null!;
 
     private List<Action> buildActions = new List<Action>();
+    private List<Action> groupCreateActions = new List<Action>();
     private IIdGenerator<int> serviceGroupIdGenerator = new Int32IdGenerator();
     private List<Action<IServiceGroup>> defaultServiceGroupConfigureActions = new List<Action<IServiceGroup>>();
-    private Action mainThreadAction = StartHelper.MainThreadLoop;
-    private string[] commandLineArgs = null!;
+    private Action mainThreadAction { get; set; } = StartHelper.MainThreadLoop;
+    private string[] commandLineArgs = [];
     private Action? appOptionsBuildAction;
     private bool alreadyBuild = false;
 
@@ -65,11 +66,16 @@ public partial class AppHostBuilder : Singleton<AppHostBuilder>
         appOptionsBuildAction!.Invoke();
 
         buildActions.Add(CreateDefaultServiceGroup);
+        buildActions.AddRange(groupCreateActions);
         this.ConfigureDefaultServiceGroup(serviceGroup =>
         {
             if (serviceGroup.Flag == null || serviceGroup.Flag == "")
             {
                 serviceGroup.Flag = "Server";
+            }
+            if (serviceGroup.WorkerId == 0)
+            {
+                serviceGroup.WorkerId = ProxarHost.Instance.AppOptions.WorkerId;
             }
         }
         );
@@ -80,6 +86,7 @@ public partial class AppHostBuilder : Singleton<AppHostBuilder>
         }
 
         ActorThreadScope.ThreadServiceGroup = DefaultServiceGroup;
+        ServiceManager.Freeze();
     }
 
     /// <summary>
@@ -91,20 +98,21 @@ public partial class AppHostBuilder : Singleton<AppHostBuilder>
     public AppHostBuilder CreateServiceGroup(Action<IServiceGroup> action)
     {
         var action2 = () => CreateServiceGroup2(action);
-        buildActions.Add(action2);
+        groupCreateActions.Add(action2);
         return this;
     }
 
     private void CreateServiceGroup2(Action<IServiceGroup> action)
     {
         IServiceGroup serviceGroup = new DefaultServiceGroup(serviceGroupIdGenerator.NewId());
+        ServiceManager.Instance.RegisterServiceGroup(serviceGroup);
         serviceGroups.Add(serviceGroup);
         action.Invoke(serviceGroup);
         serviceGroup.ServiceGroupExecute(() =>
         {
             var serviceGroup2 = ActorThreadScope.ServiceGroup;
-            ServiceManager.Instance.RegisterServiceGroup(serviceGroup2);
             StartHelper.CreateMainService(serviceGroup2.GetServiceGroupStartActions());
+            GroupHelper.GroupInit();
         });
     }
 
@@ -114,6 +122,7 @@ public partial class AppHostBuilder : Singleton<AppHostBuilder>
     private void CreateDefaultServiceGroup()
     {
         IServiceGroup serviceGroup = new DefaultServiceGroup(serviceGroupIdGenerator.NewId());
+        ServiceManager.Instance.RegisterServiceGroup(serviceGroup);
         DefaultServiceGroup = serviceGroup;
         serviceGroups.Add(serviceGroup);
         foreach (var action in defaultServiceGroupConfigureActions)
@@ -123,6 +132,7 @@ public partial class AppHostBuilder : Singleton<AppHostBuilder>
         serviceGroup.ServiceGroupExecute(() =>
         {
             StartHelper.DefaultStartUp(serviceGroup.GetServiceGroupStartActions(), mainThreadAction);
+            GroupHelper.GroupInit();
         });
     }
 

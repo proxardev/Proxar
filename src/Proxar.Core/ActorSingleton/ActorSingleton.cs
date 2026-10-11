@@ -19,6 +19,7 @@
 using Proxar.ActorSingletonCore.Interfaces;
 using Proxar.Core;
 using Proxar.ServiceCore;
+using Proxar.Utilities;
 using System.Runtime.CompilerServices;
 namespace Proxar.ActorSingletonCore;
 
@@ -85,7 +86,6 @@ public abstract class ActorSingleton<TSelf> :
     private static TSelf CreateActorSingleton()
     {
         var actorSingletonList = ActorThreadScope.ActorSingletonList!;
-
         actorSingletonList.EnsureCapacity(NeedSize);
 
         var addCount = NeedSize - actorSingletonList.Count;

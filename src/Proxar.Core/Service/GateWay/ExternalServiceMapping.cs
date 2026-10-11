@@ -25,13 +25,18 @@ internal class ExternalServiceMapping
 {
     private Dictionary<long, long> externalServices = new Dictionary<long, long>();
 
-    public void SetMapping(long type, long serviceId)
+    public void SetMapping(long proxyId, long serviceId)
     {
-        externalServices[type] = serviceId;
+        externalServices[proxyId] = serviceId;
     }
 
-    public long GetMapping(long type)
+    public void RemoveMapping(long proxyId)
     {
-        return externalServices.Get(type);
+        externalServices.Remove(proxyId);
+    }
+
+    public long GetMapping(long proxyId)
+    {
+        return externalServices.Get(proxyId);
     }
 }

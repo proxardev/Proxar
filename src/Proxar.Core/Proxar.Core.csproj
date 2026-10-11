@@ -2,10 +2,8 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <LangVersion>14</LangVersion>
   </PropertyGroup>
 
 	<PropertyGroup>
@@ -15,9 +13,10 @@
 	</PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DequeNET" Version="1.0.2" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.8" />
     <PackageReference Include="Microsoft.NETCore.Jit" Version="1.0.12" />
+	  <!--
+	  -->
     <PackageReference Include="Proxar.Analyzers.Tools" Version="0.0.1" />
     <PackageReference Include="Proxar.HashedWheelTimer" Version="1.0.1" />
     <PackageReference Include="MessagePack" Version="3.1.7" />
@@ -35,16 +34,13 @@
   </ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\tools\CodeGenerator\ServiceFuncGenerator\ServiceSourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 		<ProjectReference Include="..\Proxar.Abstractions\Proxar.Abstractions.csproj" />
+		<!--
+		<ProjectReference Include="..\..\tools\Analyzer\Analyzer\Proxar.Analyzers.csproj" OutputItemType="Analyzer"  />
+		-->
+		<ProjectReference Include="..\..\tools\CodeGenerator\ServiceFuncGenerator\ServiceSourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
-	
-	<!--
-	<ItemGroup>
-		<None Include="..\..\tools\Analyzer\Analyzer\\bin\$(Configuration)\netstandard2.0\Service.Analyzers.Generators.dll" PackagePath="analyzers\dotnet\cs" Pack="true" Visible="false" />
-	</ItemGroup>
-	
-	-->
+
 	<ItemGroup>
 		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
 			<_Parameter1>TestShared</_Parameter1>
@@ -63,13 +59,22 @@
 		</AssemblyAttribute>
 	</ItemGroup>
 	<ItemGroup>
-		<None Include="build\*.targets" Pack="true" PackagePath="build\$(TargetFramework)\" />
-		<None Include="build\*.props" Pack="true" PackagePath="build\$(TargetFramework)\" />
+		<None Include="build\Proxar.Core.targets" Pack="true" PackagePath="build\" />
+		<None Include="build\Proxar.Core.props" Pack="true" PackagePath="build\" />
 	</ItemGroup>
 	<ItemGroup>
 	  <Compile Remove="docs\**" />
 	  <EmbeddedResource Remove="docs\**" />
 	  <None Remove="docs\**" />
+	</ItemGroup>
+	<ItemGroup>
+	  <None Update="Config\ProxarCore\FrameworkServices.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+		<None Include="Config\**\*.*" Pack="true" PackagePath="build\Config\%(RecursiveDir)%(Filename)%(Extension)" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Service\Attribute\" />
 	</ItemGroup>
 
 </Project>

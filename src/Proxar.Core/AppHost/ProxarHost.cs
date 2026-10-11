@@ -20,6 +20,8 @@ using Proxar.Core;
 using Proxar.IdGenerator.Interfaces;
 using Proxar.ServiceCore;
 using Proxar.ServiceCore.Interfaces;
+using Proxar.Timer;
+using System.Diagnostics;
 
 namespace Proxar.AppHost;
 
@@ -55,4 +57,26 @@ public class ProxarHost : Singleton<ProxarHost>
     {
         AppOptions = options ?? throw new ArgumentNullException(nameof(options));
     }
+
+    public void Exit()
+    {
+        foreach (var serviceWorkerThread in ServiceManager.Instance.ServiceWorkerThreads)
+        {
+            serviceWorkerThread.Cts.Cancel();
+        }
+        foreach (var serviceWorkerThread in ServiceManager.Instance.ServiceWorkerThreads)
+        {
+            serviceWorkerThread.Thread.Join(5000);
+        }
+
+        TimerManager.Instance.HashedWheelTimer.Stop();
+        Console.WriteLine("Exit completed.");
+        var process = Process.GetCurrentProcess();
+        Console.WriteLine($"Total threads: {process.Threads.Count}");
+        foreach (ProcessThread pt in process.Threads)
+        {
+            Console.WriteLine($"Thread ID: {pt.Id}, State: {pt.ThreadState}");
+        }
+    }
+
 }

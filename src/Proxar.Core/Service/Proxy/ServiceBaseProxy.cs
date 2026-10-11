@@ -28,9 +28,11 @@ namespace Proxar.ServiceCore;
 /// </remarks>
 public partial class ServiceBaseProxy : IServiceProxy
 {
+    protected ISecretService SecretService => ServiceCore.SecretService.Instance;
 
     /// <inheritdoc/>
-    public long ServiceId { get; }
+    public long ServiceId
+    { get; }
 
     /// <inheritdoc/>
     public IMessageInvoker MessageInvoker => messageInvoker;
@@ -75,5 +77,23 @@ public partial class ServiceBaseProxy : IServiceProxy
     public static IServiceProxy Create(long serviceId, IMessageInvoker messageInvoker)
     {
         throw new NotImplementedException();
+    }
+
+    /// <inheritdoc/>
+    private static ServiceBaseProxy Create2(long serviceId)
+    {
+        return new ServiceBaseProxy(serviceId);
+    }
+
+    /// <inheritdoc/>
+    private static ServiceBaseProxy Create2(long serviceId, IMessageInvoker messageInvoker)
+    {
+        throw new NotImplementedException();
+    }
+
+    static ServiceBaseProxy()
+    {
+        ProxyFactory<ServiceBaseProxy>.Register(Create2);
+        ProxyFactory<ServiceBaseProxy>.RegisterCreateWithInvoker(Create2);
     }
 }

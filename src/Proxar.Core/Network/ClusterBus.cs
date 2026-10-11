@@ -19,11 +19,13 @@
 using Proxar.Core.Extensions;
 using Proxar.Network.Interfaces;
 using Proxar.ServiceCore;
+using Proxar.ServiceCore.Interfaces;
 using Proxar.Tasks;
 namespace Proxar.Network;
 
 
-internal partial class ClusterBus : ServiceBase
+[KnownService(3)]
+internal partial class ClusterBus : ServiceBase, IKnownService
 {
     private Dictionary<long, IChannel> channels = new Dictionary<long, IChannel>();
     private Dictionary<long, List<ZFTask>> waitCreate = new Dictionary<long, List<ZFTask>>();

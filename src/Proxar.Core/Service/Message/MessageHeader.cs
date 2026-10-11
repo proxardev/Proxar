@@ -16,6 +16,7 @@
  */
 
 
+using MessagePack;
 using Proxar.ServiceCore.Interfaces;
 
 namespace Proxar.ServiceCore.Message;
@@ -23,57 +24,107 @@ namespace Proxar.ServiceCore.Message;
 
 
 /// <summary>
-/// 消息头的默认实现，用于在服务间传递轻量级的元数据（最多支持4个 <see cref="long"/> 值）。
+/// <see cref="IMessageHeader"/> 的默认实现：固定 8 槽（<see cref="IMessageHeader.MaxSlotCount"/>）
 /// </summary>
 public class MessageHeader : IMessageHeader
 {
-    private long[] _data;
+    private readonly long[] _data = new long[IMessageHeader.MaxSlotCount];
 
-    /// <summary>
-    /// 使用单个头部数据初始化 <see cref="MessageHeader"/> 的新实例。
-    /// </summary>
-    /// <param name="data">头部数据1。</param>
-    public MessageHeader(long data)
+    public MessageHeader()
     {
-        _data = new long[] { data };
     }
 
-    /// <summary>
-    /// 使用两个头部数据初始化 <see cref="MessageHeader"/> 的新实例。
-    /// </summary>
-    /// <param name="data">头部数据1。</param>
-    /// <param name="data2">头部数据2。</param>
-    public MessageHeader(long data, long data2)
+    public MessageHeader(long rpcId)
     {
-        _data = new long[] { data, data2 };
-    }
-
-    /// <summary>
-    /// 使用三个头部数据初始化 <see cref="MessageHeader"/> 的新实例。
-    /// </summary>
-    /// <param name="data">头部数据1。</param>
-    /// <param name="data2">头部数据2。</param>
-    /// <param name="data3">头部数据3。</param>
-    public MessageHeader(long data, long data2, long data3)
-    {
-        _data = new long[] { data, data2, data3 };
-    }
-
-    /// <summary>
-    /// 使用四个头部数据初始化 <see cref="MessageHeader"/> 的新实例。
-    /// </summary>
-    /// <param name="data">头部数据1。</param>
-    /// <param name="data2">头部数据2。</param>
-    /// <param name="data3">头部数据3。</param>
-    /// <param name="data4">头部数据4。</param>
-    public MessageHeader(long data, long data2, long data3, long data4)
-    {
-        _data = new long[] { data, data2, data3, data4 };
+        this.Set(HeaderSlot.Seq, rpcId);
     }
 
     /// <inheritdoc/>
-    public ReadOnlySpan<long> GetHeaderReadOnlySpan()
+    public byte Bitmap
     {
-        return _data.AsSpan().Slice(0, _data.Length);
+        get
+        {
+            byte bitmap = 0;
+            for (int i = 0; i < IMessageHeader.MaxSlotCount; i++)
+            {
+                if (this._data[i] != 0)
+                {
+                    bitmap |= (byte)(1 << i);
+                }
+            }
+            return bitmap;
+        }
+    }
+
+    /// <inheritdoc/>
+    public long Get(HeaderSlot slot)
+    {
+        return this._data[GetIndex(slot)];
+    }
+
+    /// <inheritdoc/>
+    public void Set(HeaderSlot slot, long value)
+    {
+        this._data[GetIndex(slot)] = value;
+    }
+
+    /// <summary>
+    /// 槽位位值 → 数组索引：0x01→0，0x02→1，0x04→2，…，0x80→7。
+    /// 非 2 的幂（未知槽位）抛异常。
+    /// </summary>
+    private static int GetIndex(HeaderSlot slot)
+    {
+        var v = (byte)slot;
+        if (v == 0 || (v & (v - 1)) != 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(slot), slot, "未知槽位");
+        }
+        var index = 0;
+        while ((v & 0x01) == 0)
+        {
+            v >>= 1;
+            index++;
+        }
+        return index;
+    }
+
+
+
+    /// <summary>
+    /// 从其他头部复制全部槽值（用于将外部 header 拷贝进消息对象，隔离生命周期）。
+    /// </summary>
+    public void CopyFrom(IMessageHeader other)
+    {
+        for (int i = 0; i < IMessageHeader.MaxSlotCount; i++)
+        {
+            this._data[i] = other.Get((HeaderSlot)(1 << i));
+        }
+    }
+
+    /// <inheritdoc/>
+    public void WriteTo(ref MessagePackWriter writer)
+    {
+        var bitmap = this.Bitmap;
+        writer.Write(bitmap);
+        for (int i = 0; i < IMessageHeader.MaxSlotCount; i++)
+        {
+            if ((bitmap & (1 << i)) != 0)
+            {
+                writer.Write(this._data[i]);
+            }
+        }
+    }
+
+    /// <inheritdoc/>
+    public void ReadFrom(ref MessagePackReader reader)
+    {
+        var bitmap = reader.ReadByte();
+        for (int i = 0; i < IMessageHeader.MaxSlotCount; i++)
+        {
+            if ((bitmap & (1 << i)) != 0)
+            {
+                this._data[i] = reader.ReadInt64();
+            }
+        }
     }
 }

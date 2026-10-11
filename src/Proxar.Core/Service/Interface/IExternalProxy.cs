@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-
 namespace Proxar.ServiceCore.Interfaces;
 
 /// <summary>
@@ -27,8 +26,10 @@ namespace Proxar.ServiceCore.Interfaces;
 /// 用于创建代理实例。这种设计允许实现类灵活控制实例化过程，同时保持接口的抽象性。</para>
 /// <para>外部代理通常用于封装对属不同集群的远程服务的调用，隐藏底层通信细节。</para>
 /// </remarks>
+
 public interface IExternalProxy : IServiceProxyBase
 {
+#if NET9_0_OR_GREATER
     /// <summary>
     /// 创建一个新的 <see cref="IExternalProxy"/> 实例，使用默认的消息调用器。
     /// </summary>
@@ -51,4 +52,6 @@ public interface IExternalProxy : IServiceProxyBase
     /// 适用于需要精细控制通信行为的场景。
     /// </remarks>
     abstract static IExternalProxy Create(long serviceId, IMessageInvoker messageInvoker);
+
+#endif
 }

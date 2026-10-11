@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -18,11 +18,18 @@
 
 	  <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_AddAnalyzersToOutput</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
+  <PropertyGroup>
+	  <IncludeBuildOutput>false</IncludeBuildOutput>
+	  <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	  <DevelopmentDependency>true</DevelopmentDependency>
+  </PropertyGroup>
 
   <ItemGroup>
 	  <!--
     <ProjectReference Include="..\Analyzer.CodeFixes\Analyzer.CodeFixes.csproj" />
 	  -->
+    <ProjectReference Include="..\..\..\src\Proxar.Abstractions\Proxar.Abstractions.csproj" />
     <ProjectReference Include="..\Analyzer\Proxar.Analyzers.csproj" />
   </ItemGroup>
 
@@ -33,6 +40,7 @@
   <Target Name="_AddAnalyzersToOutput">
     <ItemGroup>
       <TfmSpecificPackageFile Include="$(OutputPath)\Proxar.Analyzers.dll" PackagePath="analyzers/dotnet/cs" />
+      <TfmSpecificPackageFile Include="$(OutputPath)\Proxar.Abstractions.dll" PackagePath="analyzers/dotnet/cs" />
 	  <!--
       <TfmSpecificPackageFile Include="$(OutputPath)\Analyzer.CodeFixes.dll" PackagePath="analyzers/dotnet/cs" />
 	  -->

@@ -19,6 +19,7 @@
 using Proxar.CachePool;
 using Proxar.CachePool.Interfaces;
 using Proxar.Core;
+using Proxar.Utilities;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 
@@ -86,7 +87,7 @@ public abstract class ZFTaskBase<TSelf> : AbstractPoolable<TSelf>, IResettablePo
     /// </summary>
     public void Coroutine()
     {
-        ArgumentNullException.ThrowIfNull(ZFTaskConfig.UnhandledExceptionHandler);
+        ThrowHelper.ThrowIfNull(ZFTaskConfig.UnhandledExceptionHandler);
 
         // 如果已完成，立即检查异常
         if (IsCompleted)

@@ -17,6 +17,7 @@
 
 
 using Proxar.ServiceCore;
+using TouchSocket.Core;
 namespace Proxar.Network;
 
 internal static class ClusterBusStart
@@ -24,5 +25,6 @@ internal static class ClusterBusStart
     public static void Initialize()
     {
         Service.CreateUniqueService<ClusterBus>();
+        TouchSocketBitConverter.DefaultEndianType = EndianType.Big;
     }
 }

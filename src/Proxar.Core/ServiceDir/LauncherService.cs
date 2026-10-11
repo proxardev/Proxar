@@ -16,9 +16,12 @@
  */
 
 
+using Proxar.ServiceCore.Interfaces;
+
 namespace Proxar.ServiceCore;
 
-internal partial class LauncherService : ServiceBase
+[KnownService(2)]
+internal partial class LauncherService : ServiceBase, IKnownService
 {
     [ServiceMethod(1)]
     private void ClearService(long serviceId)

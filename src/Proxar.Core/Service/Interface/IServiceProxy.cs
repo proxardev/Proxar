@@ -28,25 +28,28 @@ namespace Proxar.ServiceCore.Interfaces;
 /// </remarks>
 public interface IServiceProxy : IServiceProxyBase
 {
-    /// <summary>
-    /// 创建一个新的 <see cref="IServiceProxy"/> 实例，使用默认的消息调用器。
-    /// </summary>
-    /// <param name="serviceId">目标服务的唯一标识符。</param>
-    /// <returns>实现了 <see cref="IServiceProxy"/> 的代理实例。</returns>
-    /// <remarks>
-    /// 此方法将使用全局默认的 <see cref="IMessageInvoker"/> 进行消息发送。
-    /// 适用于大多数内部通信场景。
-    /// </remarks>
-    abstract static IServiceProxy Create(long serviceId);
+    //#if NET9_0_OR_GREATER
+    //    /// <summary>
+    //    /// 创建一个新的 <see cref="IServiceProxy"/> 实例，使用默认的消息调用器。
+    //    /// </summary>
+    //    /// <param name="serviceId">目标服务的唯一标识符。</param>
+    //    /// <returns>实现了 <see cref="IServiceProxy"/> 的代理实例。</returns>
+    //    /// <remarks>
+    //    /// 此方法将使用全局默认的 <see cref="IMessageInvoker"/> 进行消息发送。
+    //    /// 适用于大多数内部通信场景。
+    //    /// </remarks>
+    //    abstract static IServiceProxy Create(long serviceId);
 
-    /// <summary>
-    /// 创建一个新的 <see cref="IServiceProxy"/> 实例，使用指定的自定义消息调用器。
-    /// </summary>
-    /// <param name="serviceId">目标服务的唯一标识符。</param>
-    /// <param name="messageInvoker">自定义的消息调用器，可注入特殊处理逻辑。</param>
-    /// <returns>实现了 <see cref="IServiceProxy"/> 的代理实例。</returns>
-    /// <remarks>
-    /// 使用此方法可以在创建代理时定制消息传输行为（例如模拟测试环境等）。
-    /// </remarks>
-    abstract static IServiceProxy Create(long serviceId, IMessageInvoker messageInvoker);
+    //    /// <summary>
+    //    /// 创建一个新的 <see cref="IServiceProxy"/> 实例，使用指定的自定义消息调用器。
+    //    /// </summary>
+    //    /// <param name="serviceId">目标服务的唯一标识符。</param>
+    //    /// <param name="messageInvoker">自定义的消息调用器，可注入特殊处理逻辑。</param>
+    //    /// <returns>实现了 <see cref="IServiceProxy"/> 的代理实例。</returns>
+    //    /// <remarks>
+    //    /// 使用此方法可以在创建代理时定制消息传输行为（例如模拟测试环境等）。
+    //    /// </remarks>
+    //    abstract static IServiceProxy Create(long serviceId, IMessageInvoker messageInvoker);
+
+    //#endif
 }

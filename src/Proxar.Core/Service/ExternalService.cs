@@ -29,7 +29,7 @@ public static class ExternalService
     /// </summary>
     public static T GetExternalServiceProxy<T>(long serviceId) where T : class, IExternalProxy
     {
-        return (T.Create(serviceId) as T)!;
+        return ProxyFactory<T>.Create(serviceId);
     }
 
     /// <summary>
@@ -37,6 +37,6 @@ public static class ExternalService
     /// </summary>
     public static T GetExternalServiceProxy<T>(long serviceId, IMessageInvoker messageInvoker) where T : class, IExternalProxy
     {
-        return (T.Create(serviceId, messageInvoker) as T)!;
+        return ProxyFactory<T>.CreateWithInvoker(serviceId, messageInvoker);
     }
 }

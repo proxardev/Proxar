@@ -24,7 +24,7 @@ namespace Proxar.Network;
 
 public static class NetWorkV2Helper
 {
-    public static async ZFTask Configure(OnChannelConnectedCallback? onClientConnectedCallback)
+    public static async ZFTask ConfigureInternalNet()
     {
         var ip = ProxarHost.Instance.AppOptions.Ip;
         var port = ProxarHost.Instance.AppOptions.Port;
@@ -32,11 +32,15 @@ public static class NetWorkV2Helper
         {
             await TcpSocketManager.Instance.InitializeInternalNetworkSocketService(ip, port);
         }
+    }
+
+    public static async ZFTask ConfigureExternalNet(OnChannelConnectedCallback? onClientChannelConnectedCallback)
+    {
         var clientIp = ProxarHost.Instance.AppOptions.ClientIp;
         var clientPort = ProxarHost.Instance.AppOptions.ClientPort;
         if (clientIp.Count() != 0 && clientPort != 0)
         {
-            await TcpSocketManager.Instance.InitializeExternalNetworkSocketService(clientIp, clientPort, onClientConnectedCallback);
+            await TcpSocketManager.Instance.InitializeExternalNetworkSocketService(clientIp, clientPort, onClientChannelConnectedCallback);
         }
     }
 }

@@ -15,10 +15,12 @@
  * limitations under the License.
  */
 
+using System.ComponentModel;
+
 namespace Proxar.ServiceCore;
 
-//[EditorBrowsable(EditorBrowsableState.Never)]
-internal static class ProtoBase
+[EditorBrowsable(EditorBrowsableState.Never)]
+public static class ProtoBase
 {
     public const int BaseProtoStart = 900;
 

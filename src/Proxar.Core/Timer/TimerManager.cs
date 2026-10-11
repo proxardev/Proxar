@@ -22,15 +22,15 @@ namespace Proxar.Timer;
 
 internal class TimerManager : Singleton<TimerManager>, ISingletonInitializer
 {
-    private HashedWheelTimer hashedWheelTimer = null!;
+    internal HashedWheelTimer HashedWheelTimer { get; private set; } = null!;
 
     public void Initialize()
     {
 
-        hashedWheelTimer = new HashedWheelTimer(tickDuration: TimeSpan.FromMilliseconds(10)
+        HashedWheelTimer = new HashedWheelTimer(tickDuration: TimeSpan.FromMilliseconds(10)
             , ticksPerWheel: 100000
             , maxPendingTimeouts: 0);
     }
 
-    public HashedWheelTimer GetHashedWheelTimer() => hashedWheelTimer;
+    public HashedWheelTimer GetHashedWheelTimer() => HashedWheelTimer;
 }

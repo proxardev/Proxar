@@ -28,6 +28,7 @@ namespace Proxar.ServiceCore;
 /// </remarks>
 public partial class ServiceBase_ExternalProxy : IExternalProxy
 {
+    protected ISecretService SecretService => ServiceCore.SecretService.Instance;
 
     /// <inheritdoc/>
     public long ServiceId { get; }

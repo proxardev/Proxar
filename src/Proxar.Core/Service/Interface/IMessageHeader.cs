@@ -16,17 +16,48 @@
  */
 
 
-namespace Proxar.ServiceCore.Interfaces;
+using MessagePack;
+using Proxar.ServiceCore.Message;
 
+namespace Proxar.ServiceCore.Interfaces;
 
 /// <summary>
 /// 定义消息头的通用接口，提供对头部数据的只读访问。
+/// <list type="bullet">
+/// <item>最大槽位数 <see cref="MaxSlotCount"/>（1 字节位图 → 8 槽）；</item>
+/// <item>槽位读写 <see cref="Get"/> / <see cref="Set"/>；</item>
+/// <item>编解码 <see cref="WriteTo"/> / <see cref="ReadFrom"/></item>
+/// </list>
 /// </summary>
 public interface IMessageHeader
 {
     /// <summary>
-    /// 获取消息头数据的只读跨度。
+    /// 最大槽位数
     /// </summary>
-    /// <returns>包含头部数据的 <see cref="ReadOnlySpan{Int64}"/>。</returns>
-    public ReadOnlySpan<long> GetHeaderReadOnlySpan();
+    const int MaxSlotCount = 8;
+
+    /// <summary>
+    /// 当前置位掩码
+    /// </summary>
+    byte Bitmap { get; }
+
+    /// <summary>
+    /// 读取指定槽位的值；槽未置位时返回 0。
+    /// </summary>
+    long Get(HeaderSlot slot);
+
+    /// <summary>
+    /// 写入指定槽位的值；写入 0 等价于清除该位。
+    /// </summary>
+    void Set(HeaderSlot slot, long value);
+
+    /// <summary>
+    /// 将头部序列化到 writer：先写 1 字节位图（0x00 也写，保证读端无歧义），再按位图循环写入非零槽值。
+    /// </summary>
+    void WriteTo(ref MessagePackWriter writer);
+
+    /// <summary>
+    /// 从 reader 反序列化头部：先读 1 字节位图，再按位图循环读取槽值。
+    /// </summary>
+    void ReadFrom(ref MessagePackReader reader);
 }

@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+using Proxar.IdGenerator.SnowflakeId.Interfaces;
 
 namespace Proxar.IdGenerator.SnowflakeId;
 /// <summary>

@@ -22,6 +22,7 @@ using Proxar.Logging;
 using Proxar.ServiceCore;
 using Proxar.ServiceCore.GateWay;
 using Proxar.Tasks;
+using Proxar.Utilities;
 
 namespace Proxar.AppHost;
 
@@ -49,7 +50,7 @@ internal static class StartHelper
 
     private static void EnsureServerConfig()
     {
-        ArgumentNullException.ThrowIfNull(ZFTaskConfig.UnhandledExceptionHandler);
+        ThrowHelper.ThrowIfNull(ZFTaskConfig.UnhandledExceptionHandler);
     }
 
     private static void InitConfig()
@@ -73,8 +74,6 @@ internal static class StartHelper
 
     internal static long CreateMainService(List<Func<long, ZFTask>> funcs)
     {
-        var serviceGroup = ActorThreadScope.ServiceGroup;
-        ServiceManager.Instance.RegisterServiceGroup(serviceGroup);
         var boot = new ServiceBootstrapper(funcs);
         var serviceId = Service.CreateService<MainService>(boot);
         CreateHelperService();
@@ -84,9 +83,6 @@ internal static class StartHelper
     internal static void DefaultStartUp(List<Func<long, ZFTask>> funcs, Action? mainThreadLoop = null)
     {
         funcs.Add(CheckConfigDefault);
-        var serviceGroup = ActorThreadScope.ServiceGroup;
-        ServiceManager.Instance.RegisterServiceGroup(serviceGroup);
-
         string currentDirectory = Environment.CurrentDirectory;
         ProxarLogger.Info($"cur start dir: {currentDirectory}");
         ProxarLogger.Console($"cur start dir: {currentDirectory}");
@@ -102,6 +98,7 @@ internal static class StartHelper
         }
         mainThreadLoop.Invoke();
     }
+
 
     internal static void MainThreadLoop()
     {

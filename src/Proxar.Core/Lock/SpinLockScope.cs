@@ -72,4 +72,21 @@ internal sealed class SpinLockScope
             }
         }
     }
+
+    public bool Execute<T>(Func<T, bool> action, T args)
+    {
+        bool lockTaken = false;
+        try
+        {
+            _spinlock.Enter(ref lockTaken);
+            return action(args);
+        }
+        finally
+        {
+            if (lockTaken)
+            {
+                _spinlock.Exit(false);
+            }
+        }
+    }
 }

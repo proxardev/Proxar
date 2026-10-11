@@ -18,9 +18,9 @@
 
 namespace Proxar.ServiceCore.Dispatch;
 
-internal static class ThreadDispatchType
+internal enum ThreadDispatchType
 {
-    public const int None = 0;
-    public const int SpinWait = 1;
-    public const int Sleep = 2;
+    None,
+    SpinWait,
+    Sleep,
 }

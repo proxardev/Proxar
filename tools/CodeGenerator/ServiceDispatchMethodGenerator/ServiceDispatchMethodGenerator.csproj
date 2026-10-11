@@ -8,7 +8,7 @@
 	  <IsRoslynComponent>true</IsRoslynComponent>
 	  <EnForceExtendedAnalyzerRules>true</EnForceExtendedAnalyzerRules>
 
-	  <!-- ´ò°üÅäÖÃ -->
+	  <!-- æ‰“åŒ…é…ç½® -->
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	  <PackageId>ServiceDispatchMethodGenerator</PackageId>
 	  <Version>1.1.4</Version>
@@ -26,13 +26,13 @@
 	-->
 	<ItemGroup>
 		<None Include="ActorCacheArray_Generator.cs" Pack="True" PackagePath="\content\ActorCacheArray_Generator.cs" />
-		<!-- Ö÷ DLL -->
+		<!-- ä¸» DLL -->
 		<None Include="$(TargetPath)" Pack="true" PackagePath="analyzers/dotnet/cs/" Visible="false" />
 
-		<!-- PDB ÎÄ¼þ£¨¿ÉÑ¡£¬±ãÓÚµ÷ÊÔ£© -->
+		<!-- PDB æ–‡ä»¶ï¼ˆå¯é€‰ï¼Œä¾¿äºŽè°ƒè¯•ï¼‰ -->
 		<None Include="$(TargetDir)$(TargetName).pdb" Pack="true" PackagePath="analyzers/dotnet/cs/" Visible="false" Condition="'$(Configuration)' == 'Debug'" />
 
-		<!-- ÒÀÀµÏî£¨Èç¹ûÓÐ£© -->
+		<!-- ä¾èµ–é¡¹ï¼ˆå¦‚æžœæœ‰ï¼‰ -->
 		<None Include="$(TargetDir)*.dll" Exclude="$(TargetPath)" Pack="true" PackagePath="analyzers/dotnet/cs/" Visible="false" />
 	</ItemGroup>
 	<ItemGroup>
@@ -42,7 +42,7 @@
 		<None Include="BuildTransitive\$(PackageId).props" Pack="true" PackagePath="\buildTransitive\$(PackageId).props" />
 	</ItemGroup>
 	<Target Name="CopyToLocalPackages" AfterTargets="Pack">
-		<Exec Command="xcopy /Y $(PackageOutputPath)\$(PackageId).$(PackageVersion).nupkg $(SolutionDir)localpackages\" />
+		<Exec Command="xcopy /Y $(PackageOutputPath)\$(PackageId).$(PackageVersion).nupkg $(SolutionDir)LocalPackages\" />
 	</Target>
 
 </Project>

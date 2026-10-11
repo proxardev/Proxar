@@ -137,11 +137,13 @@ public abstract partial class ServiceBase
         {
             return;
         }
-        var header = new MessageHeader(this.curMsgSeq);
+        var header = new MessageHeader();
+        header.Set(HeaderSlot.Seq, this.curMsgSeq);
         Service.Send(this.curMsgSourceServiceId, ProtoBase.RpcCallbackError, exception.Message, header: header);
     }
 
 #pragma warning disable P0004 // 服务方法保留协议约束
+#pragma warning disable P0005 // 服务方法保留协议约束
 
     [ServiceMethod(ProtoBase.ContextAction)]
     private void ExecuteContextAction()
@@ -160,15 +162,25 @@ public abstract partial class ServiceBase
     [ServiceMethod(ProtoBase.RpcCallBack)]
     private void ExecuteRpcCallBack()
     {
-        var msgSeq = this.curMessage!.ReadHead<long>();
+        var msgSeq = this.GetCallBackRpcId(); ;
         this.OnRpcCallBack(msgSeq, this.curMessage!);
     }
 
     [ServiceMethod(ProtoBase.RpcCallbackError)]
     private void ExecuteRpcCallBackError()
     {
-        var msgSeq = this.curMessage!.ReadHead<long>();
+        var msgSeq = this.GetCallBackRpcId(); ;
         this.OnRpcCallBackError(msgSeq, this.curMessage!);
+    }
+
+    private long GetCallBackRpcId()
+    {
+        var msg = this.curMessage;
+        if (msg == null)
+        {
+            return 0;
+        }
+        return msg.GetHeader().Get(HeaderSlot.Seq);
     }
 
     [ServiceMethod(ProtoBase.ReceiveSocket)]
@@ -214,6 +226,17 @@ public abstract partial class ServiceBase
     }
 
 #pragma warning restore P0004 // 服务方法保留协议约束
+#pragma warning restore P0005 // 服务方法保留协议约束
+
+    protected long GetCurrentTargetId()
+    {
+        var header = this.curMessage?.GetHeader();
+        if (header == null)
+        {
+            return 0;
+        }
+        return header.Get(HeaderSlot.TargetId);
+    }
 
     /// <summary>
     /// 处理 RPC 回调，将响应结果设置到对应的挂起表中。
@@ -318,7 +341,8 @@ public abstract partial class ServiceBase
         {
             return;
         }
-        var header = new MessageHeader(msgSeq);
+        var header = new MessageHeader();
+        header.Set(HeaderSlot.Seq, msgSeq);
         Service.Send(targetServiceId, ProtoBase.RpcCallBack, result, header: header);
 
     }
@@ -357,7 +381,8 @@ public abstract partial class ServiceBase
         {
             return;
         }
-        var header = new MessageHeader(msgSeq);
+        var header = new MessageHeader();
+        header.Set(HeaderSlot.Seq, msgSeq);
         Service.SendRaw(targetServiceId, ProtoBase.RpcCallBack, result, header: header);
 
     }

@@ -138,7 +138,7 @@ public abstract class PayloadServiceMessage : AbstractServiceMessage, IBufferWri
     {
         var writer2 = new MessagePackWriter(writer);
         writer2.Write(this.toServiceId);
-        Service.WriterHeander(ref writer2, ServiceId, msgSeq, Proto, headerData);
+        Service.WriterHeander(ref writer2, ServiceId, msgSeq, Proto, this.GetHeader());
         if (isSerializeArgs)
         {
             if (writtenCount == 0)
@@ -206,17 +206,6 @@ public abstract class PayloadServiceMessage : AbstractServiceMessage, IBufferWri
             this.ReAllocateMemory(sizeHint);
         }
         return this.localMemoryOwner.Memory.Slice(this.writtenCount);
-    }
-
-
-    /// <inheritdoc/>
-    public override T ReadHead<T>()
-    {
-        if (this.headerData is T t)
-        {
-            return t;
-        }
-        throw new InvalidOperationException();
     }
 
 

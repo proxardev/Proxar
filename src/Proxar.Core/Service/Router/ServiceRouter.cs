@@ -26,6 +26,7 @@ internal class ServiceRouter : IMessageInvoker
 
     public void Send(long ProxyId, long serviceId, IServiceMessage serviceMessage)
     {
+
         var workerId = ServiceRouterHelper.GetWorkerId(serviceId);
         if (workerId == ProxarHost.Instance.AppOptions.WorkerId)
         {
@@ -40,7 +41,7 @@ internal class ServiceRouter : IMessageInvoker
         var service = ServiceManager.Instance.GetService(serviceId);
         if (service == null)
         {
-            throw new Exception($"ServiceRouter: {ProxyId} Service {serviceId} not found");
+            throw new Exception($"ServiceRouter: {ProxyId} Local Service {serviceId} not found");
         }
         service.PushMessage(serviceMessage);
     }

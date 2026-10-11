@@ -27,10 +27,10 @@ public abstract partial class ServiceBase
 {
     private int willConsumeCount = 0;
     private List<IServiceMessage> threadMessageList = new List<IServiceMessage>(50);
-    private ServiceWorkThread? serviceWorker = null;
+    private ServiceWorkerThread? serviceWorker = null;
 
 
-    internal bool ThreadEnter(ServiceWorkThread worker)
+    internal bool ThreadEnter(ServiceWorkerThread worker)
     {
         this.serviceWorker = worker;
         var succ = this.msgSpinLock.Execute(this.CalThreadConsumeCount2);
@@ -79,6 +79,11 @@ public abstract partial class ServiceBase
             if (succ == false)
             {
                 return false;
+            }
+            if (this.serviceWorker != null)
+            {
+                this.serviceWorker.StatRecord?.AddStatMsg();   // [STATS]
+                this.serviceWorker.Hot = true;  // [FIX-A] 干过活 → 下一轮睡觉前先自旋一小会儿
             }
             this.Dispatch();
         }

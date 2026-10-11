@@ -17,6 +17,7 @@
 
 
 using Proxar.IdGenerator.SnowflakeId;
+using Proxar.IdGenerator.SnowflakeId.Interfaces;
 using Proxar.Utilities;
 
 namespace Proxar.ServiceCore;
@@ -27,9 +28,14 @@ internal static class ServiceConfig
 
     internal static int ThreadCount { get; set; } = 10;
 
+    internal const int timestampBits = 32;
+    internal const int workerIdBits = 14;
+    internal const int sequenceBits = 17;
+    internal const TimeUnit timeUnit = TimeUnit.Seconds;
+
     private static ISnowflakeInfo snowflakeInfo { get; set; } = null!;
 
-    private static ISnowflakeInfo TryGetSnowflakeInfo()
+    private static ISnowflakeInfo GetSnowflakeInfo()
     {
         if (snowflakeInfo == null)
         {
@@ -41,11 +47,11 @@ internal static class ServiceConfig
     private static ISnowflakeInfo NewSnowflakeInfo()
     {
         var second = TimeHelper.GetSecondByStr($"{ServiceSnowflakeIdBaseYear}-01-01 00:00:00");
-        snowflakeInfo = new SnowflakeInfo(32, 14, 17, TimeUnit.Seconds, second);
+        snowflakeInfo = new SnowflakeInfo(timestampBits, workerIdBits, sequenceBits, timeUnit, second);
         return snowflakeInfo;
     }
 
-    public static ISnowflakeInfo SnowflakeInfo => TryGetSnowflakeInfo();
+    public static ISnowflakeInfo SnowflakeInfo => GetSnowflakeInfo();
 
 
 }

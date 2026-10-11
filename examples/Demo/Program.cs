@@ -15,16 +15,16 @@
  * limitations under the License.
  */
 
-
-
 using Proxar.AppHost;
 using Proxar.ServiceCore;
+using Proxar.ServiceCore.Interfaces;
 using Proxar.Tasks;
 
 namespace MyGame.Demo;
 
+[KnownService(10)]
 // 1. 定义服务
-internal partial class HelloService : ServiceBase
+internal partial class HelloService : ServiceBase, IKnownService
 {
     [ServiceMethod(1)]
     public async ZFTask<string> Greet(string name)
@@ -71,4 +71,5 @@ internal class Program
         Console.WriteLine(result); // 输出: Hello, Proxar!
 
     }
+
 }

@@ -26,18 +26,18 @@ using System.Buffers;
 using System.Collections.Concurrent;
 namespace Proxar.ServiceCore;
 
-internal class ServiceManager : Singleton<ServiceManager>
+internal class ServiceManager : SingletonFast<ServiceManager>
 {
     private ConcurrentDictionary<long, ServiceBase> serviceDict = new ConcurrentDictionary<long, ServiceBase>();
     private ConcurrentDictionary<long, ServiceBase> waitClearServiceDict = new ConcurrentDictionary<long, ServiceBase>();
     private ConcurrentQueue<long> serviceQueue = new ConcurrentQueue<long>();
     //private Queue<long> serviceQueue2 = new Queue<long>();
     //private SpinLockScope lockScope = new SpinLockScope();
-    private List<Thread> threads = new List<Thread>();
+    internal List<Thread> Threads = new List<Thread>();
     //private Int64IdSafeGenerator idGenerator = new Int64IdSafeGenerator() { InitValue = 1 };
     private SnowflakeIdGenerator idGenerator = CreateServiceIdGenerator();
 
-    private List<ServiceWorkThread> serviceWorkerList = new List<ServiceWorkThread>();
+    internal List<ServiceWorkerThread> ServiceWorkerThreads = new List<ServiceWorkerThread>();
 
     private ConcurrentDictionary<int, ConcurrentDictionary<string, long>> serviceMapping = new();
 
@@ -52,7 +52,8 @@ internal class ServiceManager : Singleton<ServiceManager>
         var succ = serviceDict.TryAdd(serviceId, service);
         if (!succ)
         {
-            throw new Exception("AddService");
+            serviceDict.TryGetValue(serviceId, out var xxx);
+            throw new Exception($"AddService error {serviceId}");
         }
     }
 
@@ -86,8 +87,15 @@ internal class ServiceManager : Singleton<ServiceManager>
     internal long CreateService<T>(IIdGenerator<long> idGenerator)
         where T : ServiceBase, new()
     {
-        var service = new T();
         long serviceId = idGenerator.NewId();
+
+        return CreateService<T>(serviceId);
+    }
+
+    internal long CreateService<T>(long serviceId)
+        where T : ServiceBase, new()
+    {
+        var service = new T();
         service.SetServiceId(serviceId);
 
         AddService(serviceId, service);
@@ -106,20 +114,20 @@ internal class ServiceManager : Singleton<ServiceManager>
         serviceMapping.TryAdd(serviceGroup.GroupId, new());
     }
 
-    public long CreateUniqueService<T>()
+    internal long CreateUniqueService<T>(long serviceId)
         where T : ServiceBase, new()
     {
         var serviceGroup = ActorThreadScope.ServiceGroup;
         var mapping = serviceMapping[serviceGroup.GroupId];
         var name = typeof(T).FullName!;
-        var serviceId = mapping.GetOrAdd(name, CreateUniqueService<T>);
+        serviceId = mapping.GetOrAdd(name, CreateUniqueService<T>, serviceId);
         return serviceId;
     }
 
-    public long CreateUniqueService<T>(string name)
+    internal long CreateUniqueService<T>(string name, long serviceId)
         where T : ServiceBase, new()
     {
-        return CreateService<T>();
+        return CreateService<T>(serviceId);
     }
 
     public long GetUniqueService<T>()
@@ -151,12 +159,19 @@ internal class ServiceManager : Singleton<ServiceManager>
     public void PushGlobalQueue(long serviceId)
     {
         this.serviceQueue.Enqueue(serviceId);
+        WorkerSignal.OnEnqueued(); // [FIX-A]
     }
+
+    // [STATS] 诊断用：全局就绪队列深度（每秒打印一次，ConcurrentQueue.Count 是近似值）
+    internal int GlobalQueueDepth => this.serviceQueue.Count;
 
     public long DequeueGlobalQueue()
     {
         var serviceId = 0L;
-        serviceQueue.TryDequeue(out serviceId);
+        if (serviceQueue.TryDequeue(out serviceId))
+        {
+            WorkerSignal.OnDequeued(); // [FIX-A]
+        }
         return serviceId;
     }
 
@@ -180,15 +195,8 @@ internal class ServiceManager : Singleton<ServiceManager>
                 {
                     count = 2;
                 }
-                var work = new ServiceWorkThread(factor, count);
-                serviceWorkerList.Add(work);
-                var workerThread = new Thread(work.ThreadDispatchService)
-                {
-                    IsBackground = true,
-                    Name = "Frame Worker"
-                };
-                threads.Add(workerThread);
-                workerThread.Start();
+                var work = new ServiceWorkerThread(factor, count);
+                ServiceWorkerThreads.Add(work);
             }
 
             remaining -= groupSize;
@@ -200,6 +208,8 @@ internal class ServiceManager : Singleton<ServiceManager>
 
 
     }
+
+
 
     public void PrepareMemoryBuffer()
     {

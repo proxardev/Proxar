@@ -35,6 +35,9 @@ public class DefaultServiceGroup : IServiceGroup
     public int GroupId { get; }
 
     /// <inheritdoc/>
+    public long WorkerId { get; set; }
+
+    /// <inheritdoc/>
     public IMessageInvoker Invoker { get; set; }
 
     /// <inheritdoc/>

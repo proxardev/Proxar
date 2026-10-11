@@ -25,6 +25,17 @@ namespace Analyzer
     public static class NamedTypeSymbolExt
     {
 
+        public static bool IsDefineAttrValue(this INamedTypeSymbol self, string attributeClassName)
+        {
+            var attr = self.GetAttributes()
+                .FirstOrDefault(a =>
+                    a.AttributeClass?.ToDisplayString() == attributeClassName
+                );
+            if (attr == null)
+                return false;
+            return true;
+        }
+
         public static bool TryGetSymbolAttrValue<T>(this INamedTypeSymbol self, string attributeClassName, string parameterName, out T value)
         {
             var attr = self.GetAttributes()
@@ -46,8 +57,14 @@ namespace Analyzer
                 }
             }
 
-            return true;
+            return false;
         }
 
+        public static string GetDefaultFullName(this INamedTypeSymbol self)
+        {
+            var format = SymbolDisplayFormat.FullyQualifiedFormat
+                .WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted);
+            return self.ToDisplayString(format);
+        }
     }
 }

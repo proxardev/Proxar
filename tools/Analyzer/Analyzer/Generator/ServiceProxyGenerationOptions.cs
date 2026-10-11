@@ -42,7 +42,7 @@ public class ServiceProxyGenerationOptions
 
     public bool GeneralSpacialProxy { get; set; } = false;
 
-    public string FilterAttribute { get; set; } = string.Empty;
+    public string MethodFilterAttribute { get; set; } = string.Empty;
 
     public string MessageInvoker { get; set; } = string.Empty;
 
@@ -63,18 +63,5 @@ public static class ServiceProxyGenerationOptionsExtension
     {
         var interfaceName = $"{serviceInfo.GetInterfaceName()}{self.Prefix}";
         return interfaceName;
-    }
-
-    public static long GetProxyId(this ServiceProxyGenerationOptions self, ServiceInfo serviceInfo)
-    {
-        if (self.Type == ServiceProxyGenerationType.ExternalProxy)
-        {
-            serviceInfo.ServiceClassSymbol
-                .TryGetSymbolAttrValue<long>(ExternalProxyAttribute.AttributeName, ExternalProxyAttribute.ProxyField, out var proxyId);
-            return self.ModuleExternalProxyPreId * 10000 + proxyId;
-
-            //return proxyId;
-        }
-        return 0;
     }
 }

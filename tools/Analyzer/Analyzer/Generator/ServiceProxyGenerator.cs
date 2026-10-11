@@ -31,7 +31,7 @@ public static partial class ServiceProxyClassGenerate
         var opetions = new ServiceProxyGenerationOptions
         {
             Prefix = "",
-            BaseInterfaceName = $"IServiceProxy",
+            BaseInterfaceName = ServiceInfo.IServiceProxy,
             GeneralSpacialProxy = true
         };
         var (succ, sourceCode) = GenerateServiceProxyClass(serviceInfo, opetions);
@@ -41,15 +41,15 @@ public static partial class ServiceProxyClassGenerate
         GenerateExternalProxyClass(moduleExternalProxyPreId, sourceProductionContext, serviceInfo);
     }
 
-    public static void GenerateExternalProxyClass(int moduleExternalProxyPreId, SourceProductionContext sourceProductionContext, ServiceInfo serviceInfo)
+    private static void GenerateExternalProxyClass(int moduleExternalProxyPreId, SourceProductionContext sourceProductionContext, ServiceInfo serviceInfo)
     {
         var opetions = new ServiceProxyGenerationOptions
         {
             Type = ServiceProxyGenerationType.ExternalProxy,
             Prefix = "External",
-            BaseInterfaceName = $"IExternalProxy",
+            BaseInterfaceName = ServiceInfo.IExternalProxy,
             GeneralSpacialProxy = false,
-            FilterAttribute = "Proxar.ServiceCore.ServiceMethodExportAttribute",
+            MethodFilterAttribute = ServiceInfo.ServiceMethodExportAttribute,
             MessageInvoker = "MessageInvoker",
             ModuleExternalProxyPreId = moduleExternalProxyPreId,
         };
@@ -66,7 +66,7 @@ public static partial class ServiceProxyClassGenerate
     private static (bool, string) GenerateServiceProxyClass(ServiceInfo serviceInfo, ServiceProxyGenerationOptions serviceProxyGenerationOptions)
     {
         var methods = serviceInfo.GetProtoMethodSymbols()
-            .Where(x => serviceProxyGenerationOptions.FilterAttribute == string.Empty || x.HasAttribute(serviceProxyGenerationOptions.FilterAttribute))
+            .Where(x => serviceProxyGenerationOptions.MethodFilterAttribute == string.Empty || x.HasAttribute(serviceProxyGenerationOptions.MethodFilterAttribute))
             .ToList();
         var namespaceName = serviceInfo.GetNamespace();
 
@@ -81,14 +81,17 @@ using Proxar.ServiceCore;
 using Proxar.ServiceCore.Interfaces;
 using Proxar.Tasks;
 
+using System.Runtime.CompilerServices;
 
 
-{(string.IsNullOrEmpty(namespaceName) ? "" : $"namespace {namespaceName};")}
+
+{(string.IsNullOrEmpty(namespaceName) ? "" : $"namespace {namespaceName} {{")}
 
 {MakeServiceProxyInterface(serviceInfo, serviceProxyGenerationOptions)}
 
 {MakeServiceProxy(serviceInfo, serviceProxyGenerationOptions)}
 
+{(string.IsNullOrEmpty(namespaceName) ? "" : $"}}")}
 ";
 
         return (methods.Any(), code);
@@ -139,6 +142,25 @@ using Proxar.Tasks;
         return GenerateProxyConstructionMethod(proxyClassName, true);
     }
 
+    public static string GenerateProxyRegister(ServiceInfo serviceInfo, ServiceProxyGenerationOptions serviceProxyGenerationOptions)
+    {
+        if (serviceInfo.IsServiceBaseClass())
+        {
+            return "";
+        }
+        var proxyClassName = serviceInfo.GetProxyClassName(serviceProxyGenerationOptions.Prefix);
+
+        var method = $@"
+    [ModuleInitializer]
+    internal static void {proxyClassName}Register()
+    {{
+        ProxyFactory<{proxyClassName}>.Register(Create2);
+        ProxyFactory<{proxyClassName}>.RegisterCreateWithInvoker(Create2);
+    }}
+";
+        return method;
+    }
+
     public static string GenerateInheritClassName(ServiceInfo serviceInfo, ServiceProxyGenerationOptions serviceProxyGenerationOptions)
     {
         if (serviceInfo.IsServiceBaseClass())
@@ -164,6 +186,21 @@ using Proxar.Tasks;
     {{
         return new {proxyClassName}(serviceId);
     }}
+
+    public new static {serviceProxyGenerationOptions.BaseInterfaceName} Create(long serviceId, IMessageInvoker messageInvoker)
+    {{
+        return new {proxyClassName}(serviceId, messageInvoker);
+    }}
+
+    private static {proxyClassName} Create2(long serviceId)
+    {{
+        return new {proxyClassName}(serviceId);
+    }}
+
+    private static {proxyClassName} Create2(long serviceId, IMessageInvoker messageInvoker)
+    {{
+        return new {proxyClassName}(serviceId, messageInvoker);
+    }}
 ";
         return method;
     }
@@ -174,7 +211,7 @@ using Proxar.Tasks;
         var className = serviceInfo.GetClassName();
         var accessibility = serviceInfo.GetAccessibilityType();
         var methods = serviceInfo.GetProtoMethodSymbols()
-            .Where(x => serviceProxyGenerationOptions.FilterAttribute == string.Empty || x.HasAttribute(serviceProxyGenerationOptions.FilterAttribute))
+            .Where(x => serviceProxyGenerationOptions.MethodFilterAttribute == string.Empty || x.HasAttribute(serviceProxyGenerationOptions.MethodFilterAttribute))
             .ToList();
         var proxyInterfaceMethod = string.Join("", methods.Select(x => MakeServiceDispathMethodProxyIntf(className, x)));
 
@@ -211,7 +248,7 @@ using Proxar.Tasks;
         var className = serviceInfo.GetClassName();
         var accessibility = serviceInfo.GetAccessibilityType();
         var methods = serviceInfo.GetProtoMethodSymbols()
-            .Where(x => proxyOption.FilterAttribute == string.Empty || x.HasAttribute(proxyOption.FilterAttribute))
+            .Where(x => proxyOption.MethodFilterAttribute == string.Empty || x.HasAttribute(proxyOption.MethodFilterAttribute))
             .ToList();
         var proxyMethod = string.Join("", methods.Select(x => MakeServiceDispathMethodProxy(className, x, serviceProxyGenerationOptions: proxyOption)));
 
@@ -236,10 +273,13 @@ using Proxar.Tasks;
     /// <remarks>
     /// 在外部代理中有效，内部代理中，只是一个占位字段。
     /// </remarks>
-    public const  long ProxyId = {proxyOption.GetProxyId(serviceInfo)};
+    public const  long ProxyId = {serviceInfo.GetProxyId(proxyOption.ModuleExternalProxyPreId)};
 #pragma warning restore CS0108
 
 {GenerateProxyConstructionMethod(serviceInfo, proxyOption)}
+
+
+{GenerateProxyRegister(serviceInfo, proxyOption)}
 
 
 {GenerateProxyCreateMethod(serviceInfo, proxyOption)}
@@ -266,8 +306,9 @@ using Proxar.Tasks;
     /// <remarks>
     /// </remarks>
     /// <param name=""serviceId"">目标服务的唯一标识符。</param>
-    {accessibility} {proxyClassName}(long serviceId)
+    {accessibility} {proxyClassName}(long serviceId, ISecretService secretService)
     {{
+        this.SecretService = secretService;
         this.ServiceId = serviceId;
     }}
 ";
@@ -322,7 +363,7 @@ using Proxar.Tasks;
     /// <summary>
     /// 获取用于发送不序列化（Raw）消息的内部结构体。使用其调用方法，调用方式不经过序列化，直接传递原始字节。
     /// </summary>
-    public {proxyClassName}_Raw Raw => new(GetServiceId());
+    public {proxyClassName}_Raw Raw => new(GetServiceId(), this.SecretService);
 #pragma warning restore CS0108
 
     /// <summary>
@@ -331,6 +372,7 @@ using Proxar.Tasks;
     {accessibility} struct {proxyClassName}_Raw
     {{
         private long ServiceId;
+        private ISecretService SecretService;
 {GenerateSpacilProxyConstructionMethod(rawStructName, accessibility)}
 
     {proxyMethod2}
@@ -350,7 +392,7 @@ using Proxar.Tasks;
     /// <summary>
     /// 获取用于向0号队列（优先队列）发送消息的内部结构体。使用其调用方法，消息将被放入优先队列。
     /// </summary>
-    public {proxyClassName}_Queue0 Queue0 => new(GetServiceId());
+    public {proxyClassName}_Queue0 Queue0 => new(GetServiceId(), this.SecretService);
 #pragma warning restore CS0108
 
     /// <summary>
@@ -359,6 +401,7 @@ using Proxar.Tasks;
     {accessibility} struct {proxyClassName}_Queue0
     {{
         private long ServiceId;
+        private ISecretService SecretService;
 {GenerateSpacilProxyConstructionMethod(queue0StructName, accessibility)}
     {proxyMethod2}
     }}
@@ -376,7 +419,7 @@ using Proxar.Tasks;
     /// <summary>
     /// 获取用于向0号队列（优先队列）发送不序列化（Raw）消息的内部结构体。
     /// </summary>
-    public {proxyClassName}_Queue0Raw Queue0Raw => new(GetServiceId());
+    public {proxyClassName}_Queue0Raw Queue0Raw => new(GetServiceId(), this.SecretService);
 #pragma warning restore CS0108
 
     /// <summary>
@@ -385,6 +428,7 @@ using Proxar.Tasks;
     {accessibility} struct {proxyClassName}_Queue0Raw
     {{
         private long ServiceId;
+        private ISecretService SecretService;
 {GenerateSpacilProxyConstructionMethod(queue0RawStructName, accessibility)}
     {proxyMethod2}
     }}
@@ -420,7 +464,7 @@ using Proxar.Tasks;
     {
         var accessibility = GenerateMethodAccessibility(methodSymbol);
         var methodName = methodSymbol.Name;
-        var proto = ServiceInfo.GetProto(methodSymbol);
+        ServiceInfo.TryGetProto(methodSymbol, out var proto);
         var paramList = methodSymbol.Parameters
             .Select(x => $"{x.Type.ToDisplayString()} {x.Name}")
             .ToList();
@@ -480,7 +524,7 @@ using Proxar.Tasks;
         int methodType = 0, ServiceProxyGenerationOptions serviceProxyGenerationOptions = null)
     {
         var declarations = MakeServiceDispathProxyMethodDeclarations(className, methodSymbol, false, appointServiceId, staticMethod);
-        var proto = ServiceInfo.GetProto(methodSymbol);
+        ServiceInfo.TryGetProto(methodSymbol, out var proto);
         var argsList = methodSymbol.Parameters
             .Select(x => $"{x.Name}").Prepend($"{proto}")
             .ToList();
@@ -531,20 +575,20 @@ using Proxar.Tasks;
         var returnType = methodSymbol.ReturnType.ToDisplayString();
         if (methodSymbol.ReturnsVoid)
         {
-            return $"Service.{send}";
+            return $"this.SecretService.{send}";
         }
         if (!methodSymbol.IsAsync)
         {
-            return $"return Service.Result<{returnType}>().{call}";
+            return $"return this.SecretService.Result<{returnType}>().{call}";
         }
 
         var namedType = methodSymbol.ReturnType as INamedTypeSymbol;
         if (!namedType.IsGenericType)
         {
-            return $"Service.{send}";
+            return $"this.SecretService.{send}";
         }
         returnType = namedType.TypeArguments[0].ToDisplayString();
-        return $"return Service.Result<{returnType}>().{call}";
+        return $"return this.SecretService.Result<{returnType}>().{call}";
     }
 
 

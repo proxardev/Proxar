@@ -21,12 +21,14 @@ using Proxar.Logging;
 using Proxar.Network.Interfaces;
 using Proxar.ServiceCore.Interfaces;
 using Proxar.ServiceCore.Message;
+using System.Buffers;
 using System.Diagnostics;
 
 namespace Proxar.ServiceCore.GateWay;
 
 
-internal partial class GateWayService : ServiceBase
+[KnownService]
+internal partial class GateWayService : ServiceBase, IKnownService
 {
     private static bool OpenDebug = false;
 
@@ -57,7 +59,7 @@ internal partial class GateWayService : ServiceBase
         channels[channel.Id] = channel;
     }
 
-    [ServiceMethod(2)]
+    [ServiceMethod]
     [ServiceMethodAction(true)]
     private void RemoveChannel(IChannel channel)
     {
@@ -102,25 +104,41 @@ internal partial class GateWayService : ServiceBase
     }
 
     [ServiceMethod(40)]
-    private void SetTargetServiceMapping(long targetId, long type, long serviceId)
+    private void SetTargetServiceMapping(long targetId, long ProxyId, long serviceId)
     {
         var mapping = this.externalServicesMapping!.Get(targetId);
         if (mapping == null)
         {
             mapping = this.externalServicesMapping[targetId] = new();
         }
-        DebugLog($"SetTargetServiceMapping {targetId} {type} {serviceId}");
-        mapping.SetMapping(type, serviceId);
+        DebugLog($"SetTargetServiceMapping {targetId} {ProxyId} {serviceId}");
+        mapping.SetMapping(ProxyId, serviceId);
     }
 
-    private long GetMappingServiceId(long targetId, long type)
+    [ServiceMethod(41)]
+    private void RemoveTargetServiceMapping(long targetId)
+    {
+        this.externalServicesMapping.Remove(targetId);
+    }
+
+    [ServiceMethod(42)]
+    private void RemoveTargetServiceProxyMapping(long targetId, long proxyId)
+    {
+        if (!this.externalServicesMapping.TryGetValue(targetId, out var mapping))
+        {
+            return;
+        }
+        mapping.RemoveMapping(targetId);
+    }
+
+    private long GetMappingServiceId(long targetId, long proxyId)
     {
         var mapping = this.externalServicesMapping!.Get(targetId);
         if (mapping == null)
         {
             return 0;
         }
-        return mapping.GetMapping(type);
+        return mapping.GetMapping(proxyId);
     }
 
     protected override void OnRpcCallBack(long callbackRpcId, IServiceMessage serviceMessage)
@@ -142,7 +160,8 @@ internal partial class GateWayService : ServiceBase
         {
             var payloadReadOnlyMemory = serviceMessage.GetPayloadReadOnlyMemory();
             var gateServiceMessage = new GateServiceMessage(payloadReadOnlyMemory);
-            var header = new MessageHeader(rpcId);
+            var header = new MessageHeader();
+            header.Set(HeaderSlot.Seq, rpcId);
             gateServiceMessage.SetHeadData(0, fromServiceId, serviceMessage.GetSeq(), serviceMessage.GetProto(), header);
             Service.MessageInvoker.Send(0, fromServiceId, gateServiceMessage);
         }
@@ -155,7 +174,8 @@ internal partial class GateWayService : ServiceBase
             }
             var payloadReadOnlyMemory = serviceMessage.GetPayloadReadOnlyMemory();
             var gateServiceMessage = new GateServiceMessage(payloadReadOnlyMemory);
-            var header = new MessageHeader(rpcId);
+            var header = new MessageHeader();
+            header.Set(HeaderSlot.Seq, rpcId);
             gateServiceMessage.SetHeadData(0, proxyId, serviceMessage.GetSeq(), serviceMessage.GetProto(), header);
             channel.Send(gateServiceMessage);
         }
@@ -180,7 +200,15 @@ internal partial class GateWayService : ServiceBase
     [ServiceMethodAction(true)]
     private void ReceiveChannelData(IChannel channel, byte[] data)
     {
-        var serviceMessage = new ServiceMessageForNet(data);
+        this.ReceiveChannelData2(channel, new GatePayload(data));
+    }
+
+
+    [ServiceMethod(24)]
+    [ServiceMethodAction(true)]
+    private void ReceiveChannelData2(IChannel channel, IPayloadBuffer payloadBuffer)
+    {
+        var serviceMessage = new ServiceMessageForNet(payloadBuffer);
         var targetId = channel2TargetIds.Get(channel);
         serviceMessage.NetMessageDeserialize();
         var proxyId = serviceMessage.GetToServiceId();
@@ -192,6 +220,8 @@ internal partial class GateWayService : ServiceBase
             return;
         }
 
+        var header = serviceMessage.GetHeader();
+        header.Set(HeaderSlot.TargetId, targetId);
 
         var rpcId = serviceMessage.GetSeq();
         var newRpcId = rpcId;
@@ -215,6 +245,30 @@ internal partial class GateWayService : ServiceBase
         Service.MessageInvoker.Send(0, toServiceId, serviceMessage);
     }
 
+    [ServiceMethod(21)]
+    [ServiceMethodAction(true)]
+    private void ReceiveData1(long channelId, byte[] data)
+    {
+        var channel = channels.GetValueOrDefault(channelId);
+        if (channel == null)
+        {
+            return;
+        }
+        this.ReceiveChannelData(channel, data);
+    }
+
+    [ServiceMethod(22)]
+    [ServiceMethodAction(true)]
+    private void ReceiveData2(long channelId, IPayloadBuffer payloadBuffer)
+    {
+        var channel = channels.GetValueOrDefault(channelId);
+        if (channel == null)
+        {
+            return;
+        }
+        this.ReceiveChannelData2(channel, payloadBuffer);
+    }
+
     [ServiceMethod(30)]
     private void ForwardServiceMessage2Client(long fromServiceId, long targetId, long proxyId, long rpcId, int proto, byte[] payloadBytes)
     {
@@ -234,5 +288,23 @@ internal partial class GateWayService : ServiceBase
         gateServiceMessage.SetHeadData(0, proxyId, rpcId, proto);
         channel.Send(gateServiceMessage);
 
+    }
+
+    private sealed class GatePayload : IPayloadBuffer
+    {
+        private readonly byte[] payload;
+
+        public GatePayload(byte[] payload)
+        {
+            this.payload = payload;
+        }
+
+        public ReadOnlyMemory<byte> Memory => payload.AsMemory();
+
+        public ReadOnlySequence<byte> MemorySequence => new ReadOnlySequence<byte>(payload);
+
+        public void Dispose()
+        {
+        }
     }
 }

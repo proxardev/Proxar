@@ -18,8 +18,11 @@
 
 using MessagePack;
 using Proxar.ServiceCore.Interfaces;
+using Proxar.ServiceCore.Message;
 using Proxar.ServiceSynchronizationContext;
 using Proxar.Tasks;
+using Proxar.Utilities;
+using System.Runtime.CompilerServices;
 
 namespace Proxar.ServiceCore;
 
@@ -53,11 +56,34 @@ public static partial class Service
     /// </summary>
     /// <typeparam name="T">要创建的唯一服务类型，必须继承自 <see cref="ServiceBase"/> 且具有无参数构造函数。</typeparam>
     /// <returns>新创建服务的唯一标识符。</returns>
-    public static long CreateUniqueService<T>()
-        where T : ServiceBase, new()
+    public static long CreateUniqueService<T>() where T : ServiceBase, IKnownService, new()
     {
-        var serviceId = ServiceManager.Instance.CreateUniqueService<T>();
+        var serviceId = GetUniqueService<T>();
+        if (serviceId != 0)
+        {
+            return serviceId;
+        }
+        var serviceGroup = ActorThreadScope.ServiceGroup;
+        serviceId = ResolveUniqueServiceId<T>(serviceGroup.WorkerId);
+        ServiceManager.Instance.CreateUniqueService<T>(serviceId);
         Send(serviceId, ProtoBase.ServiceStart, default(ServiceBootstrapper));
+
+
+        return serviceId;
+    }
+
+    /// <summary>
+    /// 获取指定工作节点的唯一服务的标识符，不依赖服务是否已经创建，
+    /// </summary>
+    /// <typeparam name="T">服务类型</typeparam>
+    /// <param name="workerId">工作节点标识</param>
+    /// <returns>唯一服务的标识符。</returns>
+    public static long ResolveUniqueServiceId<T>(long workerId) where T : IKnownService
+    {
+        var name = typeof(T).FullName!;
+        var sequence = ServiceSequenceResolver.Instance.ResolveSequence(name);
+        ThrowHelper.ThrowIfNull(sequence);
+        var serviceId = ServiceConfig.SnowflakeInfo.BuildId(0, workerId, (long)sequence);
         return serviceId;
     }
 
@@ -95,7 +121,13 @@ public static partial class Service
     public static T GetServiceProxy<T>(long serviceId)
         where T : class, IServiceProxy
     {
-        return (T.Create(serviceId) as T)!;
+        var create = ProxyFactory<T>.Create;
+        if (create == null)
+        {
+            RuntimeHelpers.RunClassConstructor(typeof(T).TypeHandle);
+            create = ProxyFactory<T>.Create;
+        }
+        return create.Invoke(serviceId);
     }
 
     /// <summary>
@@ -108,7 +140,13 @@ public static partial class Service
     public static T GetServiceProxy<T>(long serviceId, IMessageInvoker messageInvoker)
         where T : class, IServiceProxy
     {
-        return (T.Create(serviceId, messageInvoker) as T)!;
+        var create = ProxyFactory<T>.CreateWithInvoker;
+        if (create == null)
+        {
+            RuntimeHelpers.RunClassConstructor(typeof(T).TypeHandle);
+            create = ProxyFactory<T>.CreateWithInvoker;
+        }
+        return create.Invoke(serviceId, messageInvoker);
     }
 
     /// <summary>
@@ -151,23 +189,22 @@ public static partial class Service
 
     internal static void WriterHeander(ref MessagePackWriter writer,
         long serviceId, long msgSeq, int proto,
-        long headerData)
+        IMessageHeader header)
     {
         writer.Write(serviceId);
         writer.Write(msgSeq);
         writer.Write(proto);
-        if (headerData != 0)
-        {
-            writer.Write(headerData);
-        }
+        header.WriteTo(ref writer);
         writer.Flush();
     }
 
-    internal static (long, long, int) ReadHeander(ref MessagePackReader reader)
+    internal static (long, long, int, IMessageHeader) ReadHeander(ref MessagePackReader reader)
     {
         var serviceId = reader.ReadInt64();
         var mesSeq = reader.ReadInt64();
         var proto = reader.ReadInt32();
-        return (serviceId, mesSeq, proto);
+        var header = new MessageHeader();
+        header.ReadFrom(ref reader);
+        return (serviceId, mesSeq, proto, header);
     }
 }

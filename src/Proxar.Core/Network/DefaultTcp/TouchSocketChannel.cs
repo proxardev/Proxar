@@ -18,7 +18,6 @@
 
 using Proxar.Network.Interfaces;
 using Proxar.Tasks;
-using System.Buffers.Binary;
 using System.Net;
 using TouchSocket.Core;
 using TouchSocket.Sockets;
@@ -60,6 +59,14 @@ public class TouchSocketChannel : IChannel, IDisposable
         var client = new TcpClient();
         await client.SetupAsync(new TouchSocketConfig()
             .SetRemoteIPHost(remoteEndPoint)
+            .SetTcpDataHandlingAdapter(() =>
+            {
+                return new FixedHeaderPackageAdapter()
+                {
+                    FixedHeaderType = FixedHeaderType.Int
+                };
+            }
+            )
             .ConfigurePlugins(a =>
                 {
                     a.Add<TcpServiceReceivedPlugin>();
@@ -83,7 +90,7 @@ public class TouchSocketChannel : IChannel, IDisposable
 
     public bool IsConnected => ValidConnected();
 
-    public long Id { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public long Id { get; set; }
 
     private bool ValidConnected()
     {
@@ -146,10 +153,8 @@ public class TouchSocketChannel : IChannel, IDisposable
             var headSize = 4;
             var buffer = new PooledBufferWriter(64);
             var span = buffer.GetSpan(headSize);
-            buffer.Advance(headSize);
             message.NetMessageSerialize(buffer);
             var writtenMemory = buffer.WrittenMemory;
-            BinaryPrimitives.WriteInt32LittleEndian(writtenMemory.Span[..headSize], writtenMemory.Length - headSize);
             if (tcpClient != null)
             {
                 await tcpClient.SendAsync(writtenMemory);

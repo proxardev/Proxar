@@ -49,12 +49,13 @@ namespace Analyzer
             return true;
         }
 
-        public static bool IsRequestCallBackMethod(this IMethodSymbol methodSymbol)
+        public static bool IsRequestCallBackMethod(this IMethodSymbol methodSymbol, ServiceInfo serviceInfo)
         {
+            //var attr = methodSymbol.GetAttributes()
+            //    .FirstOrDefault(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, serviceInfo.ServiceMethodAttributeNamedTypeSymbol)
+            //    );
             var attr = methodSymbol.GetAttributes()
-                .FirstOrDefault(a =>
-                    a.AttributeClass?.ToDisplayString() == "Proxar.ServiceCore.ServiceMethodAttribute"
-                );
+                .FirstOrDefault(a => a.AttributeClass.ToDisplayString() == ServiceInfo.ServiceMethodAttributeName);
 
             if (attr == null)
                 return false;
@@ -97,7 +98,7 @@ namespace Analyzer
 
         public static bool IsProvideRawArgsProxy(this IMethodSymbol methodSymbol)
         {
-            var value = methodSymbol.GetMethodAttrValue("Proxar.ServiceCore.ServiceMethodActionAttribute", "rawArgsMethod");
+            var value = methodSymbol.GetMethodAttrValue(ServiceInfo.ServiceMethodActionAttribute, "rawArgsMethod");
 
             if (value == null)
                 return false;
@@ -110,7 +111,7 @@ namespace Analyzer
 
         public static bool IsProvideQueue0ArgsProxy(this IMethodSymbol methodSymbol)
         {
-            var value = methodSymbol.GetMethodAttrValue("Proxar.ServiceCore.ServiceMethodActionAttribute", "queue0ArgsMethod");
+            var value = methodSymbol.GetMethodAttrValue(ServiceInfo.ServiceMethodActionAttribute, "queue0ArgsMethod");
 
             if (value == null)
                 return false;

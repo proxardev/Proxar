@@ -105,4 +105,10 @@ public static partial class Service
         service!.PushMessage(msg);
     }
 
+    // TODO 限制外部使用
+    public static void Response<T>(long serviceId, long rpcId, T result)
+    {
+        var header = new MessageHeader(rpcId);
+        Service.Send(serviceId, ProtoBase.RpcCallBack, result, header: header);
+    }
 }

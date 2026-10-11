@@ -45,7 +45,7 @@ namespace Analyzer
             "实参数量，应与形参数量一致."
             );
 
-        internal static readonly DiagnosticDescriptor ErrorRule_0003 = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor ErrorRule_0003 = new DiagnosticDescriptor(
             "P0003",
             "服务方法协议唯一性约束",
             "协议 {0} 重复使用, 相同协议方法: {1}",
@@ -55,7 +55,7 @@ namespace Analyzer
             "一个服务中，禁止多次使用同一个协议号."
             );
 
-        internal static readonly DiagnosticDescriptor ErrorRule_0004 = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor ErrorRule_0004 = new DiagnosticDescriptor(
             "P0004",
             "服务方法保留协议约束",
             "协议 {0} 为保留协议，不允许业务使用.{1}为保留协议段",
@@ -65,7 +65,7 @@ namespace Analyzer
             "保留协议段为内部使用，不允许业务使用."
             );
 
-        internal static readonly DiagnosticDescriptor ErrorRule_0005 = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor ErrorRule_0005 = new DiagnosticDescriptor(
             "P0005",
             "协议定义范围约束",
             "协议 {0} 为无效协议，协议应该大于等于 {1}",
@@ -74,7 +74,16 @@ namespace Analyzer
             isEnabledByDefault: true
             );
 
-        internal static readonly DiagnosticDescriptor ErrorRule_1001 = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor ErrorRule_0006 = new DiagnosticDescriptor(
+            "P0005",
+            "协议定义范围约束",
+            "指定协议时，仅仅允许使用{0}-{1}，不允许使用{2}",
+            "Usage",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true
+            );
+
+        public static readonly DiagnosticDescriptor ErrorRule_1001 = new DiagnosticDescriptor(
             "P1001",
             "项目未定义外部代理ID前缀",
             "项目标记使用 [{0}]，但未在 .csproj 中配置 {1} 属性。请添加 <{2}>值</{3}> 并确保值大于 0。同时声明 <CompilerVisibleProperty Include=\"{4}\" /> 以使分析器可见。",
@@ -83,7 +92,7 @@ namespace Analyzer
             isEnabledByDefault: true
             );
 
-        internal static readonly DiagnosticDescriptor ErrorRule_1002 = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor ErrorRule_1002 = new DiagnosticDescriptor(
             "P1002",
             "外部代理ID值范围不合法",
             "使用 [{0}] 特性，配置值{1}不合法，配置值范围应为{2}-{3}",
@@ -92,7 +101,7 @@ namespace Analyzer
             isEnabledByDefault: true
             );
 
-        internal static readonly DiagnosticDescriptor ErrorRule_1003 = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor ErrorRule_1003 = new DiagnosticDescriptor(
             "P1003",
             "外部代理ID值重复",
             "使用 [{0}] 特性，配置值不应重复，配置Id为{1}，相同Id类为：{2}",
@@ -100,6 +109,43 @@ namespace Analyzer
             DiagnosticSeverity.Error,
             isEnabledByDefault: true
             );
+
+        public static readonly DiagnosticDescriptor ErrorRule_1004 = new DiagnosticDescriptor(
+            "P1004",
+            "外部代理Id指定异常",
+            "使用 [{0}] 特性，指定配置值应在范围{1}-{2}，当前值为{3}",
+            "Usage",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true
+            );
+
+        public static readonly DiagnosticDescriptor ErrorRule_1011 = new DiagnosticDescriptor(
+            "P1011",
+            "知名服务Id重复",
+            "使用 [{0}] 特性，配置值不应重复，配置Id为{1}，相同Id类为：{2}",
+            "Usage",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true
+            );
+
+        public static readonly DiagnosticDescriptor ErrorRule_1012 = new DiagnosticDescriptor(
+            "P1012",
+            "知名服务Id指定错误",
+            "使用 [{0}] 特性，指定配置值应在范围{1}-{2}，当前值为{3}",
+            "Usage",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true
+            );
+
+        public static readonly DiagnosticDescriptor RestrictedAccessViolation = new DiagnosticDescriptor(
+            id: "P1021",
+            title: "禁止引用被 [RestrictedAccess] 标记的入口",
+            messageFormat: "成员 '{0}' 已标记为 [RestrictedAccess]，仅允许在其声明类型（含嵌套类型）内部使用。当前引用位于外部类型 '{1}'。",
+            category: "Proxar.RestrictedAccess",
+            defaultSeverity: DiagnosticSeverity.Error,
+            isEnabledByDefault: true,
+            description: "通过 [RestrictedAccess] 标记的入口（方法/属性/字段/事件/构造器/类型）禁止在声明类型外部被引用.",
+            helpLinkUri: "https://docs.proxar/internal/analyzers/RS001");
 
         // 定义信息级别诊断
         internal static readonly DiagnosticDescriptor DebugRule = new DiagnosticDescriptor(

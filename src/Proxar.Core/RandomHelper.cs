@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-
 namespace Proxar.Utilities;
 
 
 internal static class RandomHelper
 {
 
+#if NET6_0_OR_GREATER
     public static int Random(int range)
     {
         return System.Random.Shared.Next(range);
@@ -31,6 +31,18 @@ internal static class RandomHelper
     {
         return System.Random.Shared.Next();
     }
+#else
+
+    [ThreadStatic]
+    private static System.Random? _random;
+
+    private static System.Random ThreadRandom =>
+        _random ??= new System.Random(Guid.NewGuid().GetHashCode());
+
+    public static int Random(int range) => ThreadRandom.Next(range);
+    public static int Random() => ThreadRandom.Next();
+#endif
+
 
     /// <summary>
     /// 打乱整数列表（原地修改，使用 Fisher–Yates 洗牌算法）
@@ -54,4 +66,5 @@ internal static class RandomHelper
     {
         return values[Random(values.Count)];
     }
+
 }

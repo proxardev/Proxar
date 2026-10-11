@@ -64,11 +64,11 @@ public interface IServiceMessage : IDisposable
     ReadOnlyMemory<byte> GetPayloadReadOnlyMemory();
 
     /// <summary>
-    /// 从消息头中读取指定类型的数据。
+    /// 获取消息的完整扩展头
     /// </summary>
-    /// <typeparam name="T">要从头部读取的数据类型。</typeparam>
-    /// <returns>头部数据的实例。</returns>
-    public T ReadHead<T>();
+    /// <returns>消息的扩展头。</returns>
+    IMessageHeader GetHeader();
+
 
     /// <summary>
     /// 将消息负载反序列化为单个指定类型的对象。

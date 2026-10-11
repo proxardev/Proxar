@@ -54,7 +54,7 @@ public sealed class ActorSynchronizationContext : AbstractSynchronizationContext
     /// 获取与此同步上下文关联的服务实例。
     /// </summary>
     /// <returns><see cref="ServiceBase"/> 实例。</returns>
-    public ServiceBase GetService()
+    internal ServiceBase GetService()
     {
         return attachedService;
     }
@@ -73,13 +73,14 @@ public sealed class ActorSynchronizationContext : AbstractSynchronizationContext
     /// <param name="state">传递给回调的状态对象。</param>
     public override void Post(SendOrPostCallback d, object? state)
     {
-        if (this.attachedService == null)
+        var service = this.attachedService;
+        if (service == null)
         {
             return;
         }
         var msg = new ContextActionMessage(d, state);
         msg.Init();
-        this.attachedService.PushMessage(msg);
+        service.PushMessage(msg);
     }
 
     /// <summary>
@@ -88,13 +89,14 @@ public sealed class ActorSynchronizationContext : AbstractSynchronizationContext
     /// <param name="action">要执行的操作。</param>
     public override void Post(Action action)
     {
-        if (this.attachedService == null)
+        var service = this.attachedService;
+        if (service == null)
         {
             return;
         }
         var msg = new ContextActionMessage(action);
         msg.Init();
-        this.attachedService.PushMessage(msg);
+        service.PushMessage(msg);
     }
 
     internal IIdGenerator<long> GetTimerIdGenerator()

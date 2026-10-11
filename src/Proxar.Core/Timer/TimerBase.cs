@@ -69,6 +69,7 @@ public class TimerBase : BaseObject, ITimerObject
 
     private HWT.Timeout TimerCall(long milliSecond, TimerTaskObject timer, bool clearInfo = true)
     {
+        Proxar.ServiceCore.Dispatch.DispatchStats.OnTimerRegister(); // [STATS]
         var hashedWheelTimer = TimerManager.Instance.GetHashedWheelTimer();
         return hashedWheelTimer.NewTimeout(timer, TimeSpan.FromMilliseconds(milliSecond));
     }

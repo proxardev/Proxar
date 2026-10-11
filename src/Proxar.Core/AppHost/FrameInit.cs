@@ -16,7 +16,6 @@
  */
 
 
-using Proxar.Network;
 using Proxar.ServiceCore;
 
 namespace Proxar.AppHost;
@@ -27,6 +26,5 @@ internal static class FrameInit
     internal static void Init()
     {
         ServiceManager.Instance.Start();
-        ClusterBusStart.Initialize();
     }
 }

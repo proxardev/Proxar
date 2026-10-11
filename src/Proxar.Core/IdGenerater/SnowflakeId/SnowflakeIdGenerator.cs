@@ -17,6 +17,7 @@
 
 
 using Proxar.IdGenerator.Interfaces;
+using Proxar.IdGenerator.SnowflakeId.Interfaces;
 using Proxar.Utilities;
 namespace Proxar.IdGenerator.SnowflakeId;
 

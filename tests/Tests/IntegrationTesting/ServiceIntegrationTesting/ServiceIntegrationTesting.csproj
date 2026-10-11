@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+	<LangVersion>14</LangVersion>
+  </PropertyGroup>
+	
+	<PropertyGroup>
+		<ModuleExternalProxyPreId>1</ModuleExternalProxyPreId>
+	</PropertyGroup>
+	<ItemGroup>
+		<CompilerVisibleProperty Include="ModuleExternalProxyPreId" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="coverlet.collector" Version="6.0.2" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+		<PackageReference Include="Mongo2Go" Version="4.1.0" />
+		<PackageReference Include="SharpCompress" Version="0.48.1" />
+		<PackageReference Include="Snappier" Version="1.3.1" />
+		<PackageReference Include="TouchSocket" Version="4.2.4" />
+	</ItemGroup>
+
+  <ItemGroup>
+		<ProjectReference Include="..\..\..\Share\Shared\TestShared.csproj" />
+	</ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+	<ItemGroup>
+		<Compile Include="../../../ShareCode/**/*.cs">
+			<Link>ShareCode\%(RecursiveDir)%(FileName)%(Extension)</Link>
+		</Compile>
+	</ItemGroup>
+
+	<PropertyGroup>
+		<TestOffset>2</TestOffset>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<AssemblyMetadata Include="TestOffset" Value="2" />
+	</ItemGroup>
+
+</Project>

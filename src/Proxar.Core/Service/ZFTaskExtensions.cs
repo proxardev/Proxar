@@ -49,12 +49,14 @@ public static class ZFTaskExtensions
         try
         {
             var result = await task;
-            var header = new MessageHeader(msgIdx);
+            var header = new MessageHeader();
+            header.Set(Interfaces.HeaderSlot.Seq, msgIdx);
             Service.Send(serviceId, ProtoBase.RpcCallBack, result, header: header);
         }
         catch (Exception exception)
         {
-            var header = new MessageHeader(msgIdx);
+            var header = new MessageHeader();
+            header.Set(Interfaces.HeaderSlot.Seq, msgIdx);
             Service.Send(serviceId, ProtoBase.RpcCallbackError, exception.Message, header: header);
             throw;
         }

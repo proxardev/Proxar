@@ -60,11 +60,28 @@ public interface IGateMessageInvoker
     void SetTargetServiceMapping(long targetId, long type, long serviceId);
 
     /// <summary>
+    /// Removes the target service mapping.
+    /// </summary>
+    /// <param name="targetId">The target identifier.</param>
+    void RemoveTargetServiceMapping(long targetId);
+
+    /// <summary>
+    /// Removes the target service mapping.
+    /// </summary>
+    /// <param name="targetId">The target identifier.</param>
+    /// <param name="proxyId">The proxy identifier.</param>
+    void RemoveTargetServiceMapping(long targetId, long proxyId);
+
+    /// <summary>
     /// 接收来自客户端通道的数据，根据路由信息解析并路由到内部服务。
     /// </summary>
     /// <param name="channel">数据来源的客户端通道。</param>
     /// <param name="data">接收到的原始字节数据。</param>
     void ReceiveChannelData(IChannel channel, byte[] data);
+
+    void ReceiveData(long channelId, byte[] data);
+    void ReceiveData(IChannel channel, IPayloadBuffer payloadBuffer);
+    void ReceiveData(long channelId, IPayloadBuffer payloadBuffer);
 
     /// <summary>
     /// 将来自内部服务的消息转发到指定目标客户端。

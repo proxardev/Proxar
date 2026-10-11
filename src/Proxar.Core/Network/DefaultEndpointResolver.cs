@@ -24,7 +24,7 @@ namespace Proxar.Network;
 
 using ClusterConfigType = Dictionary<long, Dictionary<string, string>>;
 
-internal class DefaultEndpointResolver : IEndpointResolver
+public class DefaultEndpointResolver : IEndpointResolver
 {
 
 

@@ -1,20 +1,23 @@
 <Project>
-	<!-- 编译前清理 generated 目录中的旧外部代理文件 -->
-	<Target Name="ProxarCleanOldGeneratedFiles" BeforeTargets="CoreCompile">
+	<!-- 编译前清理 generated 目录中的旧外部代理文件 
+	<Target Name="ProxarCleanOldGeneratedFiles" BeforeTargets="BeforeBuild">
 		<ItemGroup>
 			<OldGeneratedFiles Include="$(IntermediateOutputPath)generated\**\*_ExternalProxy.g.cs" />
 		</ItemGroup>
 		<Delete Files="@(OldGeneratedFiles)" />
 		<Message Text="[Proxar] Cleaned @(OldGeneratedFiles->Count()) old generated external proxy files" Importance="high" />
 	</Target>
+	-->
 
 	<!-- 编译后复制生成的外部代理文件 -->
 	<Target Name="ProxarCopyExternalProxyCode" AfterTargets="CoreCompile">
-		<!-- 清理目标目录中的旧文件 -->
+		<!-- 清理目标目录中的旧文件
 		<ItemGroup>
 			<OldOutputFiles Include="$(ProxarExternalProxyOutputPath)\**\*_ExternalProxy.g.cs" />
 		</ItemGroup>
 		<Delete Files="@(OldOutputFiles)" />
+		<Message Text="[Proxar] Deleting @(OldOutputFiles->Count()) files from $(ProxarExternalProxyOutputPath)" Importance="high" />
+		-->
 
 		<!-- 收集生成的新文件 -->
 		<ItemGroup>
@@ -29,4 +32,19 @@
 
 		<Message Text="[Proxar] Exported @(ExternalProxyFiles->Count()) external proxy files to $(ProxarExternalProxyOutputPath)" Importance="high" />
 	</Target>
+	
+	<!-- 清理时，清理文件 -->
+	<Target Name="ProxarCleanGeneratedOnClean" AfterTargets="Clean">
+		<RemoveDir Directories="$(IntermediateOutputPath)generated" />
+		<RemoveDir Directories="$(ProxarExternalProxyOutputPath)" />
+		<Message Text="[Proxar] Clean $(ProxarExternalProxyOutputPath) and $(IntermediateOutputPath)generated" Importance="high" />
+	</Target>
+	
+	<ItemGroup>
+		<Content Include="$(MSBuildThisFileDirectory)Config\**\*.*">
+			<Link>Config\%(RecursiveDir)%(Filename)%(Extension)</Link>
+			<Visible>false</Visible>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
 </Project>

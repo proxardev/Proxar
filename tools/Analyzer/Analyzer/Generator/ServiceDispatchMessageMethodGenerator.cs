@@ -44,33 +44,63 @@ public class ServiceDispatchMessageMethodGenerator : IIncrementalGenerator
             .Select((options, ct) =>
             {
                 // 尝试读取属性，失败时返回默认值 0
-                options.GlobalOptions.TryGetValue("build_property.ModuleExternalProxyPreId", out var moduleIdStr);
+                options.GlobalOptions.TryGetValue($"build_property.{ServiceInfo.ModuleExternalProxyPreIdField}", out var moduleIdStr);
                 //return 111;
                 return int.TryParse(moduleIdStr, out var moduleId) ? moduleId : 0;
             });
+        var assemblyNameProvider = context.CompilationProvider
+            .Select((compilation, _) => SanitizeAssemblyName(compilation.AssemblyName));
 
         var collected = serviceInfos.Collect();
-        var combined = collected.Combine(rpcCallBackFunc).Combine(moduleIdProvider);
+        var combined = collected
+            .Combine(rpcCallBackFunc)
+            .Combine(moduleIdProvider)
+            .Combine(assemblyNameProvider);
 
 
 
         context.RegisterSourceOutput(combined, (productionContext, info) =>
         {
-            var ((serviceInfos, rpcInfo), ModuleExternalProxyPreId) = info;
-            var uniqueServices = serviceInfos
-                .GroupBy(info => info.GetFullClassName())  // 按类名分组
-                .Select(g => g.First())                // 每组只留第一个
-                .ToList();
-            foreach (var uniqueService in uniqueServices)
+            try
             {
+                var (((serviceInfos, rpcInfo), ModuleExternalProxyPreId), assemblyName) = info;
+                var uniqueServices = serviceInfos
+                    .GroupBy(info => info.GetFullClassName())  // 按类名分组
+                    .Select(g => g.First())                // 每组只留第一个
+                    .ToList();
+                foreach (var uniqueService in uniqueServices)
+                {
 
-                var sourceCode = GenerateServiceDispatchPartialClass(uniqueService, "");
-                var fileName = $"{uniqueService.GetNamespace()}.{uniqueService.GetClassName().Replace('<', '_').Replace('>', '_')}_DispatchTable.g.cs";
-                productionContext.AddSource(fileName, SourceText.From(sourceCode, Encoding.UTF8));
+                    var sourceCode = GenerateServiceDispatchPartialClass(uniqueService, "");
+                    var fileName = $"{uniqueService.GetNamespace()}.{uniqueService.GetClassName().Replace('<', '_').Replace('>', '_')}_DispatchTable.g.cs";
+                    productionContext.AddSource(fileName, SourceText.From(sourceCode, Encoding.UTF8));
 
-                ServiceProxyClassGenerate.GenerateProxyClass(ModuleExternalProxyPreId, productionContext, uniqueService);
+                    ServiceProxyClassGenerate.GenerateProxyClass(ModuleExternalProxyPreId, productionContext, uniqueService);
+                }
+                var code = ServiceSequenceGenerator.GenerateKnownServiceInitializer(assemblyName, uniqueServices);
+                var knownServiceInitializerFile = $"proxar.g.cs";
+                productionContext.AddSource(knownServiceInitializerFile, SourceText.From(code, Encoding.UTF8));
             }
+            catch (Exception ex)
+            {
+                var descriptor = new DiagnosticDescriptor(
+                    id: "SG0001",
+                    title: "Source Generator Error",
+                    messageFormat: $"生成器执行失败: {ex.Message}\n{ex.StackTrace}",
+                    category: "ServiceDispatchMessageMethodGenerator",
+                    defaultSeverity: DiagnosticSeverity.Error,
+                    isEnabledByDefault: true
+                );
+                productionContext.ReportDiagnostic(Diagnostic.Create(descriptor, Location.None));
+                throw ex;
+            }
+
         });
+    }
+    private static string SanitizeAssemblyName(string name)
+    {
+        // 将点号、横线等特殊字符替换为下划线
+        return name.Replace(".", "_").Replace("-", "_").Replace(" ", "_");
     }
 
     // 判断语法节点是否是候选方法
@@ -102,7 +132,7 @@ public class ServiceDispatchMessageMethodGenerator : IIncrementalGenerator
 
         var methodName = methodSymbol.Name;
 
-        var isRequestCallBack = methodSymbol.IsRequestCallBackMethod();
+        var isRequestCallBack = methodSymbol.IsRequestCallBackMethod(serviceInfo);
 
         var (protoName, protoName2, proto) = serviceInfo.ParseMethodNameProtoName(methodSymbol);
         var argsTypes = methodSymbol.Parameters
@@ -146,8 +176,7 @@ public class ServiceDispatchMessageMethodGenerator : IIncrementalGenerator
 ";
             resultInfo = $@"var result = ";
             afterLogic = $@"
-                    var header = new MessageHeader(responseMsgIdx);
-                    Service.Send(responseServiceId, ProtoBase.RpcCallBack, result, header: header);
+                    Service.Response(responseServiceId, responseMsgIdx, result);
 ";
         }
         var info = string.Empty;
@@ -257,7 +286,7 @@ using Proxar.ServiceCore.Interfaces;
 using Proxar.ServiceCore.Message;
 
 
-{(string.IsNullOrEmpty(namespaceName) ? "" : $"namespace {namespaceName};")}
+{(string.IsNullOrEmpty(namespaceName) ? "" : $"namespace {namespaceName} {{")}
 
 
 {accessibility} partial class {className}
@@ -282,6 +311,7 @@ using Proxar.ServiceCore.Message;
 
 {protoDefinesInfo}
 
+{(string.IsNullOrEmpty(namespaceName) ? "" : $"}}")}
 
 ";
 

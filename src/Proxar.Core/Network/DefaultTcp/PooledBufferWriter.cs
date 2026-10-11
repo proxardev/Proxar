@@ -20,7 +20,7 @@ using System.Buffers;
 
 namespace Proxar.Network;
 
-internal sealed class PooledBufferWriter : IBufferWriter<byte>, IDisposable
+public sealed class PooledBufferWriter : IBufferWriter<byte>, IDisposable
 {
     private IMemoryOwner<byte>? _owner;
     private Memory<byte> _memory;

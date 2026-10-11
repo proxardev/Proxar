@@ -18,6 +18,40 @@
 
 namespace Proxar.Core;
 
+internal abstract class SingletonFast<T> : Singleton<T> where T : Singleton<T>, new()
+{
+    private static T _instanceCache = null!;
+    public static new T Instance => Get();
+
+    private static T Get()
+    {
+        var result = FastGet();
+        if (result != null)
+        {
+            return result;
+        }
+        return SlowGet();
+    }
+
+    private static T FastGet()
+    {
+        if (_instanceCache == null)
+        {
+            _instanceCache = Singleton<T>.Instance;
+        }
+        return _instanceCache;
+    }
+    private static T SlowGet()
+    {
+        return Singleton<T>.Instance;
+    }
+
+    public static void Freeze()
+    {
+        _instanceCache = Singleton<T>.Instance;
+    }
+}
+
 /// <summary>
 /// 提供泛型单例基类，确保类型 <typeparamref name="T"/> 在整个应用程序域中只有一个实例。
 /// 实例的创建和初始化是线程安全的（通过 <see cref="Lazy{T}"/> 实现），但实例内部状态和方法的线程安全性需由派生类自行保证。

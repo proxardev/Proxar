@@ -18,6 +18,7 @@
 
 using MessagePack;
 using Proxar.Network;
+using Proxar.ServiceCore.Interfaces;
 using System.Buffers;
 namespace Proxar.ServiceCore.Message;
 
@@ -30,6 +31,7 @@ namespace Proxar.ServiceCore.Message;
 /// </remarks>
 public class ServiceMessageForNet : AbstractServiceMessage, INetMessage
 {
+    private IPayloadBuffer? payloadBuffer;
     private ReadOnlySequence<byte> readOnlySequence;
     private int readOffset = 0;
     private byte[] bytes = null!;
@@ -43,6 +45,12 @@ public class ServiceMessageForNet : AbstractServiceMessage, INetMessage
         this.bytes = bytes;
         this.readOffset = 0;
         this.readOnlySequence = new ReadOnlySequence<byte>(this.bytes);
+    }
+
+    public ServiceMessageForNet(IPayloadBuffer payloadBuffer)
+    {
+        this.payloadBuffer = payloadBuffer;
+        this.readOnlySequence = payloadBuffer.MemorySequence;
     }
 
     /// <inheritdoc/>
@@ -77,10 +85,11 @@ public class ServiceMessageForNet : AbstractServiceMessage, INetMessage
         var reader = this.GetMessagePackReader();
 
         var toServiceId = reader.ReadInt64();
-        var (serviceId, msgSeq, proto) = Service.ReadHeander(ref reader);
-        this.SetHeadData(serviceId, toServiceId, msgSeq, proto);
+        var (serviceId, msgSeq, proto, header) = Service.ReadHeander(ref reader);
+        this.SetHeadData(serviceId, toServiceId, msgSeq, proto, header);
         readOffset = (int)reader.Consumed;
     }
+
 
     /// <inheritdoc/>
     public override void SerializeArgs(IBufferWriter<byte> writer)
@@ -124,5 +133,14 @@ public class ServiceMessageForNet : AbstractServiceMessage, INetMessage
     protected override void OnConsumed(long consumed)
     {
         readOffset += (int)consumed;
+    }
+
+    public override void Dispose()
+    {
+        if (this.payloadBuffer != null)
+        {
+            this.payloadBuffer.Dispose();
+            this.payloadBuffer = null;
+        }
     }
 }
